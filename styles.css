@@ -157,11 +157,11 @@ hr{
 /* ================= MOBILE ================= */
 @media (max-width: 768px){
 
+  /* ===== HEADER ===== */
   .main-header{
     padding:15px 12px;
   }
 
-  /* LOGO */
   .logo{
     position:absolute;
     left:12px;
@@ -170,9 +170,8 @@ hr{
     height:60px;
   }
 
-  /* CONTENIDO HEADER */
   .header-center{
-    margin-left:90px;     /* 🔹 empuja texto y botones a la derecha */
+    margin-left:90px;      /* deja espacio al logo */
     align-items:flex-start;
     text-align:left;
   }
@@ -183,7 +182,6 @@ hr{
     margin-bottom:10px;
   }
 
-  /* NAV */
   .header-center nav{
     display:flex;
     gap:8px;
@@ -195,5 +193,24 @@ hr{
     font-size:14px;
     padding:8px 14px;
     margin:0;
+  }
+
+  /* ===== LAYOUT ===== */
+  .layout{
+    flex-direction:column;
+    gap:15px;
+  }
+
+  .box{
+    width:100%;
+  }
+
+  /* ===== TABLAS / CALENDARIO ===== */
+  .table-wrapper{
+    overflow-x:auto;
+  }
+
+  table{
+    min-width:700px;
   }
 }
