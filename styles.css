@@ -117,27 +117,42 @@ button.save:hover{
 }
 
 /* ================= TABLAS ================= */
+
+/* Contenedor con scroll propio */
 .table-wrapper{
   width:100%;
-  overflow-x:auto;
+  max-height:320px;        /* altura visible */
+  overflow-y:auto;         /* scroll vertical interno */
+  overflow-x:auto;         /* scroll horizontal si hace falta */
+  border:1px solid #ccc;
+  border-radius:6px;
+  background:#fff;
 }
 
+/* Tabla */
 table{
   width:100%;
   min-width:900px;
   border-collapse:collapse;
   background:#fff;
+  font-size:15px;
 }
 
+/* Celdas */
 th,td{
   border:1px solid #999;
   padding:8px;
   text-align:center;
+  white-space:nowrap;
 }
 
+/* Encabezado fijo */
 th{
+  position:sticky;
+  top:0;
   background:#8b0000;
   color:#fff;
+  z-index:2;
 }
 
 /* ================= FORMULARIOS ================= */
@@ -163,7 +178,6 @@ hr{
   }
 
   .logo{
-    position:absolute;
     left:12px;
     top:12px;
     transform:none;
@@ -171,7 +185,7 @@ hr{
   }
 
   .header-center{
-    margin-left:90px;      /* deja espacio al logo */
+    margin-left:90px;
     align-items:flex-start;
     text-align:left;
   }
@@ -205,12 +219,13 @@ hr{
     width:100%;
   }
 
-  /* ===== TABLAS / CALENDARIO ===== */
+  /* ===== TABLAS ===== */
   .table-wrapper{
-    overflow-x:auto;
+    max-height:260px;   /* un poco más chica en celu */
   }
 
   table{
     min-width:700px;
+    font-size:14px;
   }
 }
