@@ -1,222 +1,214 @@
 /* ================= RESET BÁSICO ================= */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
-html, body {
-  height: 100%;
-  overflow: auto; /* ahora la página sí puede scrollear */
+html, body{
+  height:100%;
+  overflow:auto;
 }
 
-body {
+body{
   font-family: Arial, Helvetica, sans-serif;
-  background: #f2f2f2;
-  font-size: 17px;
-  color: #111;
+  background:#f2f2f2;
+  font-size:17px;
+  color:#111;
 }
 
 /* ================= HEADER ================= */
-.main-header {
-  background: #c30000;
-  color: #fff;
-  padding: 18px 30px;
-  position: relative;
+.main-header{
+  background:#c30000;
+  color:#fff;
+  padding:18px 30px;
+  position:relative;
 }
 
-/* LOGO */
-.logo {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 90px;
-  width: auto;
+.logo{
+  position:absolute;
+  left:20px;
+  top:50%;
+  transform:translateY(-50%);
+  height:90px;
+  width:auto;
 }
 
-/* CONTENIDO CENTRAL */
-.header-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+.header-center{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
 }
 
-.header-center h1 {
-  font-size: 30px;
-  margin-bottom: 8px;
+.header-center h1{
+  font-size:30px;
+  margin-bottom:8px;
 }
 
-.header-center nav button {
-  margin: 0 6px;
-  padding: 10px 22px;
-  font-size: 17px;
-  cursor: pointer;
-  border: none;
-  background: #fff;
-  color: #8b0000;
-  border-radius: 4px;
+.header-center nav button{
+  margin:0 6px;
+  padding:10px 22px;
+  font-size:17px;
+  cursor:pointer;
+  border:none;
+  background:#fff;
+  color:#8b0000;
+  border-radius:4px;
 }
 
-.header-center nav button:hover {
-  background: #eee;
+.header-center nav button:hover{
+  background:#eee;
 }
 
 /* ================= SECCIONES ================= */
-.section {
-  display: none;
-  padding: 20px;
-  height: calc(100vh - 150px); /* pantalla menos header */
+.section{
+  display:none;
+  padding:20px;
+  height:calc(100vh - 150px);
 }
 
-.section.active {
-  display: block;
+.section.active{
+  display:block;
 }
 
 /* ================= LAYOUT INICIO ================= */
-.layout {
-  display: flex;
-  gap: 20px;
-  height: 100%;
+.layout{
+  display:flex;
+  gap:20px;
+  height:100%;
 }
 
-.box {
-  background: #fff;
-  padding: 20px;
-  border-radius: 6px;
-  flex: 1;
-  overflow: hidden;
+.box{
+  background:#fff;
+  padding:20px;
+  border-radius:6px;
+  flex:1;
+  overflow:hidden;
 }
 
 /* ================= TARJETAS ================= */
-.club-card {
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-bottom: 15px;
-  background: #fff;
+.club-card{
+  border:1px solid #ccc;
+  padding:15px;
+  margin-bottom:15px;
+  background:#fff;
 }
 
-.club-details {
-  display: none;
-  margin-top: 10px;
-  padding: 10px;
-  background: #eef;
+.club-details{
+  display:none;
+  margin-top:10px;
+  padding:10px;
+  background:#eef;
 }
 
 /* ================= BOTONES ================= */
-button {
-  cursor: pointer;
+button{
+  cursor:pointer;
 }
 
 /* ================= JUGADORES ================= */
-#jugadores {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+#jugadores{
+  display:flex;
+  flex-direction:column;
+  gap:15px;
 }
 
-/* ================= TABLA CON VISOR ================= */
-.table-wrapper {
-  width: 100%;             /* ocupa todo el ancho disponible */
-  max-height: 400px;       /* altura del visor */
-  overflow-x: auto;        /* scroll horizontal si la tabla es más ancha */
-  overflow-y: auto;        /* scroll vertical si hay muchas filas */
+/* VISOR SOLO PARA TABLAS DE JUGADORES */
+#jugadores .table-wrapper {
+  max-height: 400px;     /* altura del visor */
+  overflow-y: auto;      /* scroll vertical */
+  overflow-x: auto;      /* scroll horizontal si hace falta */
   border: 1px solid #ccc;
   border-radius: 6px;
   padding: 10px;
   background: #fff;
-  box-sizing: border-box;
 }
 
 /* TABLA */
-table {
-  width: 100%;
-  min-width: 900px;        /* ancho mínimo de la tabla */
-  border-collapse: collapse;
-  font-size: 15px;
+#jugadores table{
+  width:100%;
+  min-width:900px;
+  border-collapse:collapse;
+  font-size:15px;
 }
 
-th, td {
-  border: 1px solid #999;
-  padding: 8px;
-  text-align: center;
-  white-space: nowrap;
+#jugadores th, #jugadores td{
+  border:1px solid #999;
+  padding:8px;
+  text-align:center;
+  white-space:nowrap;
 }
 
-/* ENCABEZADO FIJO */
-th {
-  position: sticky;
-  top: 0;
-  background: #8b0000;
-  color: #fff;
-  z-index: 2;
+#jugadores th{
+  position:sticky;
+  top:0;
+  background:#8b0000;
+  color:#fff;
+  z-index:2;
 }
 
 /* ================= FORMULARIOS ================= */
-input, select {
-  padding: 6px;
-  font-size: 15px;
+input, select{
+  padding:6px;
+  font-size:15px;
 }
 
-input[type="number"] {
-  width: 60px;
+input[type="number"]{
+  width:60px;
 }
 
-hr {
-  margin: 20px 0;
+hr{
+  margin:20px 0;
 }
 
 /* ================= MOBILE ================= */
-@media (max-width: 768px) {
+@media (max-width: 768px){
 
-  /* HEADER */
-  .main-header {
-    padding: 14px 12px;
+  .main-header{
+    padding:14px 12px;
   }
 
-  .logo {
-    left: 12px;
-    top: 12px;
-    transform: none;
-    height: 60px;
+  .logo{
+    left:12px;
+    top:12px;
+    transform:none;
+    height:60px;
   }
 
-  .header-center {
-    margin-left: 90px;
-    align-items: flex-start;
-    text-align: left;
+  .header-center{
+    margin-left:90px;
+    align-items:flex-start;
+    text-align:left;
   }
 
-  .header-center h1 {
-    font-size: 20px;
-    line-height: 1.25;
+  .header-center h1{
+    font-size:20px;
+    line-height:1.25;
   }
 
-  .header-center nav {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+  .header-center nav{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
   }
 
-  .header-center nav button {
-    font-size: 14px;
-    padding: 7px 14px;
+  .header-center nav button{
+    font-size:14px;
+    padding:7px 14px;
   }
 
-  /* LAYOUT */
-  .layout {
-    flex-direction: column;
+  .layout{
+    flex-direction:column;
   }
 
-  /* TABLA */
-  .table-wrapper {
-    max-height: 300px; /* altura del visor en móvil */
-    padding: 5px;
+  /* TABLAS DE JUGADORES EN MÓVIL */
+  #jugadores .table-wrapper{
+    max-height:300px;
   }
 
-  table {
-    min-width: 600px;  /* tabla más compacta */
-    font-size: 13px;
+  #jugadores table{
+    min-width:600px;
+    font-size:13px;
   }
 }
