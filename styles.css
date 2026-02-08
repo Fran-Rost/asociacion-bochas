@@ -1,4 +1,4 @@
-/* ================= RESET BÁSICO ================= */
+/* ================= RESET ================= */
 *{
   box-sizing:border-box;
   margin:0;
@@ -6,8 +6,8 @@
 }
 
 html, body{
+  width:100%;
   height:100%;
-  overflow:hidden; /* 🔒 la página NO scrollea */
 }
 
 body{
@@ -15,6 +15,14 @@ body{
   background:#f2f2f2;
   font-size:17px;
   color:#111;
+  overflow:hidden; /* ❌ la página no scrollea */
+}
+
+/* ================= ESTRUCTURA GENERAL ================= */
+.app{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
 /* ================= HEADER ================= */
@@ -23,6 +31,7 @@ body{
   color:#fff;
   padding:18px 30px;
   position:relative;
+  flex-shrink:0;
 }
 
 /* LOGO */
@@ -32,10 +41,9 @@ body{
   top:50%;
   transform:translateY(-50%);
   height:90px;
-  width:auto;
 }
 
-/* CONTENIDO CENTRAL */
+/* CENTRO */
 .header-center{
   display:flex;
   flex-direction:column;
@@ -63,11 +71,17 @@ body{
   background:#eee;
 }
 
+/* ================= CONTENIDO ================= */
+.main-content{
+  flex:1;                    /* ocupa todo lo que queda */
+  padding:20px;
+  overflow:hidden;           /* ❌ no scroll acá */
+}
+
 /* ================= SECCIONES ================= */
 .section{
   display:none;
-  padding:20px;
-  height:calc(100vh - 150px); /* pantalla menos header */
+  height:100%;
 }
 
 .section.active{
@@ -89,7 +103,7 @@ body{
   overflow:hidden;
 }
 
-/* ================= TARJETAS ================= */
+/* ================= CLUBES ================= */
 .club-card{
   border:1px solid #ccc;
   padding:15px;
@@ -104,22 +118,18 @@ body{
   background:#eef;
 }
 
-/* ================= BOTONES ================= */
-button{
-  cursor:pointer;
-}
-
 /* ================= JUGADORES ================= */
 #jugadores{
   display:flex;
   flex-direction:column;
+  height:100%;
   gap:15px;
 }
 
 /* ================= TABLA CON SCROLL PROPIO ================= */
 .table-wrapper{
-  flex:1;                  /* ocupa todo el espacio restante */
-  overflow-y:auto;          /* 🔥 scroll SOLO acá */
+  flex:1;                 /* 🔥 define la altura visible */
+  overflow-y:auto;         /* ✅ scroll SOLO acá */
   overflow-x:auto;
   background:#fff;
   border:1px solid #ccc;
@@ -206,7 +216,6 @@ hr{
     flex-direction:column;
   }
 
-  /* TABLA */
   table{
     min-width:700px;
     font-size:14px;
