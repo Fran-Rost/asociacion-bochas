@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Asociación de Bochas - ADMIN</title>
+<link rel="icon" type="image/png" href="logo-asociacion.png">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="database.js"></script>
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  margin:0;
+  background:#f2f2f2;
+  font-size:17px;
+}
+
+nav button{
+  padding:10px 20px;
+  margin:5px;
+  font-size:16px;
+  cursor:pointer;
+}
+.section{display:none;padding:25px;}
+.active{display:block;}
+.box{
+  background:#fff;
+  padding:20px;
+  border-radius:6px;
+  margin-bottom:20px;
+}
+.club{
+  border:1px solid #ccc;
+  padding:15px;
+  margin-bottom:15px;
+}
+.players{margin-left:20px;}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #999;
+  padding:8px;
+  text-align:center;
+}
+th{
+  background:#8b0000;
+  color:#fff;
+}
+input,select{padding:5px;}
+input[type="number"]{width:60px;}
+.save{
+  background:#0b4f6c;
+  color:#fff;
+  padding:10px 25px;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+}
+hr{margin:25px 0;}
+</style>
+</head>
+
+<body>
+
+<header class="main-header">
+  <img src="logo-asociacion.png" alt="Logo Asociación" class="logo">
+
+  <div class="header-center">
+    <h1>Asociación de Bochas de Alta Gracia</h1>
+
+    <nav>
+      <button onclick="showSection('inicio')">Inicio</button>
+      <button onclick="showSection('clubes')">Clubes</button>
+      <button onclick="showSection('jugadores')">Jugadores</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= INICIO ================= -->
+<section id="inicio" class="section active">
+
+<!-- ===== TORNEOS FEDERADOS ===== -->
+<div class="box">
+<h2>Torneos Federados</h2>
+
+<div id="listaFederados"></div>
+
+<hr>
+
+<h3>Crear torneo federado</h3>
+Fecha: <input id="fedFecha"><br><br>
+Observación: <input id="fedObs"><br><br>
+
+<div id="torneoClubes"></div>
+
+<button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
+</div>
+
+<!-- ===== TORNEOS INTERNOS ===== -->
+<div class="box">
+<h2>Torneos Internos</h2>
+
+<div id="listaInternos"></div>
+
+<hr>
+
+<h3>Crear torneo interno</h3>
+Organizador: <input id="intOrg"><br><br>
+Nombre: <input id="intNombre"><br><br>
+Fecha: <input id="intFecha"><br><br>
+Descripción: <input id="intDesc"><br><br>
+
+<button class="save" onclick="crearTorneoInterno()">Crear torneo interno</button>
+</div>
+
+<button class="save" onclick="saveDB(db)">Guardar cambios</button>
+
+</section>
+
+<!-- ================= CLUBES ================= -->
+<section id="clubes" class="section">
+<div class="box">
+<h2>Clubes</h2>
+
+<div id="adminClubes"></div>
+
+<hr>
+
+<h3>Agregar club</h3>
+Nombre: <input id="nuevoClubNombre">
+Ubicación: <input id="nuevoClubUbicacion">
+<button class="save" onclick="agregarClub()">Agregar club</button>
+
+<br><br>
+<button class="save" onclick="guardarClubes()">Guardar cambios</button>
+</div>
+</section>
+
+<!-- ================= JUGADORES ================= -->
+<section id="jugadores" class="section">
+<div class="box">
+<h2>Jugadores</h2>
+
+<table>
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Club</th>
+<th>Categoría</th>
+<th>Jugados</th>
+<th>1° Ronda</th>
+<th>Zona</th>
+<th>16avos</th>
+<th>Octavos</th>
+<th>Cuartos</th>
+<th>Semifinal</th>
+<th>Subcampeón</th>
+<th>Campeón</th>
+</tr>
+</thead>
+<tbody id="tablaJugadores"></tbody>
+</table>
+
+<button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
+
+<hr>
+
+<h3>Agregar jugador</h3>
+Nombre: <input id="nuevoJugadorNombre">
+
+Club:
+<select id="nuevoJugadorClub"></select>
+
+Categoría:
+<select id="nuevoJugadorCategoria">
+<option>Primera</option>
+<option>Segunda</option>
+<option>Tercera</option>
+</select>
+
+<button class="save" onclick="agregarJugador()">Agregar jugador</button>
+
+</div>
+</section>
+
+<script>
+const db = getDB();
+
+/* -------- Navegación -------- */
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ================= TORNEOS ================= */
+
+function cargarFederados(){
+  const cont = document.getElementById("listaFederados");
+  cont.innerHTML = "";
+
+  if(db.torneosFederados.length === 0){
+    cont.innerHTML = "<p>No hay torneos federados</p>";
+    return;
+  }
+
+  db.torneosFederados.forEach((t,ti)=>{
+    const div = document.createElement("div");
+    div.className = "club";
+
+    div.innerHTML = `
+      <strong>Torneo #${t.id}</strong><br><br>
+
+      Fecha:
+      <input value="${t.fecha}"
+        onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
+
+      Observación:
+      <input value="${t.observacion}"
+        onchange="db.torneosFederados[${ti}].observacion=this.value"><br><br>
+
+      <button class="save" onclick="toggle('ins-${ti}')">
+        Editar inscriptos
+      </button>
+
+      <button class="save"
+        style="background:#a00;margin-left:10px"
+        onclick="eliminarTorneoFederado(${ti})">
+        Eliminar torneo
+      </button>
+
+      <div id="ins-${ti}" style="display:none;margin-top:15px">
+        ${renderInscriptosFederado(t,ti)}
+      </div>
+    `;
+
+    cont.appendChild(div);
+  });
+}
+
+function renderInscriptosFederado(torneo, ti){
+  return db.clubes.map(club=>{
+    const ins = torneo.inscriptos[club.nombre] || [];
+
+    return `
+      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
+        <strong>${club.nombre}</strong><br>
+        ${club.jugadores.map(j=>`
+          <label>
+            <input type="checkbox"
+              ${ins.includes(j.nombre) ? "checked" : ""}
+              onchange="toggleJugador(${ti}, '${club.nombre}', '${j.nombre}', this.checked)">
+            ${j.nombre}
+          </label><br>
+        `).join("")}
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleJugador(ti, club, jugador, checked){
+  const ins = db.torneosFederados[ti].inscriptos;
+
+  if(!ins[club]) ins[club] = [];
+
+  if(checked){
+    if(!ins[club].includes(jugador)){
+      ins[club].push(jugador);
+    }
+  } else {
+    ins[club] = ins[club].filter(j=>j!==jugador);
+  }
+}
+
+function eliminarTorneoFederado(index){
+  if(!confirm("¿Eliminar este torneo federado?")) return;
+  db.torneosFederados.splice(index,1);
+  saveDB(db);
+  cargarFederados();
+}
+
+function toggle(id){
+  const e=document.getElementById(id);
+  e.style.display = e.style.display==="none"?"block":"none";
+}
+
+/* ================= TORNEOS INTERNOS ================= */
+
+function cargarInternos(){
+  const cont = document.getElementById("listaInternos");
+  cont.innerHTML = "";
+
+  if(db.torneosInternos.length === 0){
+    cont.innerHTML = "<p>No hay torneos internos cargados.</p>";
+    return;
+  }
+
+  db.torneosInternos.forEach((t,i)=>{
+    const div = document.createElement("div");
+    div.className = "club";
+    div.innerHTML = `
+      <strong>${t.nombre}</strong><br>
+      <strong>Fecha:</strong> ${t.fecha}<br>
+      <strong>Organiza:</strong> ${t.organizador}<br>
+      <em>${t.descripcion}</em><br><br>
+
+      <button class="save"
+        style="background:#a00"
+        onclick="eliminarTorneoInterno(${i})">
+        Eliminar torneo
+      </button>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+function eliminarTorneoInterno(index){
+  if(!confirm("¿Eliminar este torneo interno?")) return;
+  db.torneosInternos.splice(index,1);
+  saveDB(db);
+  cargarInternos();
+}
+
+function agregarTorneoInterno(){
+  db.torneosInternos.push({
+    nombre: intNombre.value,
+    fecha: intFecha.value,
+    organizador: intOrganizador.value,
+    descripcion: intDescripcion.value
+  });
+
+  saveDB(db);
+  cargarInternos();
+
+  intNombre.value = "";
+  intFecha.value = "";
+  intOrganizador.value = "";
+  intDescripcion.value = "";
+}
+
+/* Cargar al iniciar */
+cargarInternos();
+
+
+function cargarClubesTorneo(){
+  const div=document.getElementById("torneoClubes");
+  div.innerHTML="";
+  db.clubes.forEach(c=>{
+    div.innerHTML+=`
+      <div class="club">
+        <strong>${c.nombre}</strong><br>
+        ${c.jugadores.map(j=>`
+          <label>
+            <input type="checkbox" class="jugador" value="${j.nombre}">
+            ${j.nombre}
+          </label><br>
+        `).join("")}
+      </div>
+    `;
+  });
+}
+
+function crearTorneoFederado(){
+  const ins={};
+  document.querySelectorAll("#torneoClubes .club").forEach(c=>{
+    const n=c.querySelector("strong").innerText;
+    const j=[];
+    c.querySelectorAll(".jugador").forEach(x=>x.checked&&j.push(x.value));
+    ins[n]=j;
+  });
+  db.torneosFederados.push({
+    id:Date.now(),
+    fecha:fedFecha.value,
+    observacion:fedObs.value,
+    inscriptos:ins
+  });
+  saveDB(db); location.reload();
+}
+
+function crearTorneoInterno(){
+  db.torneosInternos.push({
+    organizador:intOrg.value,
+    nombre:intNombre.value,
+    fecha:intFecha.value,
+    descripcion:intDesc.value
+  });
+  saveDB(db); location.reload();
+}
+
+/* ================= CLUBES ================= */
+const adminClubes=document.getElementById("adminClubes");
+db.clubes.forEach((c,i)=>{
+  adminClubes.innerHTML+=`
+    <div class="club">
+      Nombre: <input value="${c.nombre}" class="c-nombre"><br>
+      Ubicación: <input value="${c.ubicacion}" class="c-ubicacion"><br><br>
+
+      <button class="save"
+        style="background:#a00"
+        onclick="eliminarClub(${i})">
+        Eliminar club
+      </button>
+    </div>`;
+});
+
+/* ================= JUGADORES ================= */
+const tabla=document.getElementById("tablaJugadores");
+function cargarJugadores(){
+  tabla.innerHTML="";
+  db.clubes.forEach((club,ci)=>{
+    club.jugadores.forEach((j,ji)=>{
+      tabla.innerHTML+=`
+        <tr>
+          <td><input value="${j.nombre}"></td>
+
+          <td>
+            <select class="select-club">
+              ${db.clubes.map((c,i)=>`
+                <option value="${i}" ${i===ci?"selected":""}>
+                  ${c.nombre}
+                </option>`).join("")}
+            </select>
+          </td>
+
+          <td>
+            <select class="select-categoria">
+              <option ${j.categoria==="Primera"?"selected":""}>Primera</option>
+              <option ${j.categoria==="Segunda"?"selected":""}>Segunda</option>
+              <option ${j.categoria==="Tercera"?"selected":""}>Tercera</option>
+            </select>
+          </td>
+
+          ${j.stats.map(s=>`<td><input type="number" value="${s}"></td>`).join("")}
+
+          <td>
+            <button class="save"
+              style="background:#a00"
+              onclick="eliminarJugador(${ci},${ji})">
+              ✕
+            </button>
+          </td>
+        </tr>`;
+    });
+  });
+}
+
+function eliminarJugador(ci, ji){
+  if(!confirm("¿Eliminar este jugador?")) return;
+
+  db.clubes[ci].jugadores.splice(ji,1);
+  saveDB(db);
+  cargarJugadores();
+}
+
+const sel=document.getElementById("nuevoJugadorClub");
+db.clubes.forEach(c=>sel.innerHTML+=`<option>${c.nombre}</option>`);
+
+function guardarClubes(){
+  document.querySelectorAll(".c-nombre").forEach((n,i)=>db.clubes[i].nombre=n.value);
+  document.querySelectorAll(".c-ubicacion").forEach((u,i)=>db.clubes[i].ubicacion=u.value);
+  saveDB(db);
+}
+
+function eliminarClub(index){
+  if(!confirm("⚠️ Esto eliminará el club y TODOS sus jugadores.\n¿Continuar?")) return;
+
+  db.clubes.splice(index,1);
+  saveDB(db);
+  location.reload();
+}
+
+function guardarJugadores(){
+  db.clubes.forEach(c=>c.jugadores=[]);
+  document.querySelectorAll("#tablaJugadores tr").forEach(tr=>{
+    const i=tr.querySelectorAll("input");
+    const ci=+tr.querySelector(".select-club").value;
+    db.clubes[ci].jugadores.push({
+      nombre:i[0].value,
+      categoria:tr.querySelector(".select-categoria").value,
+      stats:[...i].slice(1).map(x=>+x.value)
+    });
+  });
+  saveDB(db);
+}
+
+function agregarClub(){
+  db.clubes.push({nombre:nuevoClubNombre.value,ubicacion:nuevoClubUbicacion.value,jugadores:[]});
+  saveDB(db);location.reload();
+}
+
+function agregarJugador(){
+  db.clubes.find(c=>c.nombre===nuevoJugadorClub.value)
+  .jugadores.push({nombre:nuevoJugadorNombre.value,categoria:nuevoJugadorCategoria.value,stats:[0,0,0,0,0,0,0,0,0]});
+  saveDB(db);location.reload();
+}
+
+cargarFederados();
+cargarInternos();
+cargarClubesTorneo();
+cargarJugadores();
+</script>
+
+</body>
+</html>
