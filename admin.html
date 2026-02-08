@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Asociación de Bochas - ADMIN</title>
-<link rel="icon" type="image/png" href="logo-asociacion.png">
+<link rel="icon" type="image/png" href="logo-asociacion-removebg-preview.png">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -144,50 +144,53 @@ Ubicación: <input id="nuevoClubUbicacion">
 
 <!-- ================= JUGADORES ================= -->
 <section id="jugadores" class="section">
-<div class="box">
-<h2>Jugadores</h2>
+  <div class="box">
+    <h2>Jugadores</h2>
 
-<table>
-<thead>
-<tr>
-<th>Nombre</th>
-<th>Club</th>
-<th>Categoría</th>
-<th>Jugados</th>
-<th>1° Ronda</th>
-<th>Zona</th>
-<th>16avos</th>
-<th>Octavos</th>
-<th>Cuartos</th>
-<th>Semifinal</th>
-<th>Subcampeón</th>
-<th>Campeón</th>
-</tr>
-</thead>
-<tbody id="tablaJugadores"></tbody>
-</table>
+    <!-- VISOR DE TABLA -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Club</th>
+            <th>Categoría</th>
+            <th>Jugados</th>
+            <th>1° Ronda</th>
+            <th>Zona</th>
+            <th>16avos</th>
+            <th>Octavos</th>
+            <th>Cuartos</th>
+            <th>Semifinal</th>
+            <th>Subcampeón</th>
+            <th>Campeón</th>
+          </tr>
+        </thead>
+        <tbody id="tablaJugadores"></tbody>
+      </table>
+    </div>
 
-<button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
+    <!-- BOTONES FUERA DEL VISOR -->
+    <button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
+    <hr>
 
-<hr>
+    <h3>Agregar jugador</h3>
+    Nombre: <input id="nuevoJugadorNombre">
 
-<h3>Agregar jugador</h3>
-Nombre: <input id="nuevoJugadorNombre">
+    Club:
+    <select id="nuevoJugadorClub"></select>
 
-Club:
-<select id="nuevoJugadorClub"></select>
+    Categoría:
+    <select id="nuevoJugadorCategoria">
+      <option>Primera</option>
+      <option>Segunda</option>
+      <option>Tercera</option>
+    </select>
 
-Categoría:
-<select id="nuevoJugadorCategoria">
-<option>Primera</option>
-<option>Segunda</option>
-<option>Tercera</option>
-</select>
-
-<button class="save" onclick="agregarJugador()">Agregar jugador</button>
-
-</div>
+    <button class="save" onclick="agregarJugador()">Agregar jugador</button>
+  </div>
 </section>
+
 
 <script>
 const db = getDB();

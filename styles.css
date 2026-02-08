@@ -1,223 +1,222 @@
-/* ================= RESET ================= */
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+/* ================= RESET BÁSICO ================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html, body{
-  width:100%;
-  height:100%;
+html, body {
+  height: 100%;
+  overflow: auto; /* ahora la página sí puede scrollear */
 }
 
-body{
+body {
   font-family: Arial, Helvetica, sans-serif;
-  background:#f2f2f2;
-  font-size:17px;
-  color:#111;
-  overflow:hidden; /* ❌ la página no scrollea */
-}
-
-/* ================= ESTRUCTURA GENERAL ================= */
-.app{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
+  background: #f2f2f2;
+  font-size: 17px;
+  color: #111;
 }
 
 /* ================= HEADER ================= */
-.main-header{
-  background:#c30000;
-  color:#fff;
-  padding:18px 30px;
-  position:relative;
-  flex-shrink:0;
+.main-header {
+  background: #c30000;
+  color: #fff;
+  padding: 18px 30px;
+  position: relative;
 }
 
 /* LOGO */
-.logo{
-  position:absolute;
-  left:20px;
-  top:50%;
-  transform:translateY(-50%);
-  height:90px;
+.logo {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 90px;
+  width: auto;
 }
 
-/* CENTRO */
-.header-center{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
+/* CONTENIDO CENTRAL */
+.header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.header-center h1{
-  font-size:30px;
-  margin-bottom:8px;
+.header-center h1 {
+  font-size: 30px;
+  margin-bottom: 8px;
 }
 
-.header-center nav button{
-  margin:0 6px;
-  padding:10px 22px;
-  font-size:17px;
-  cursor:pointer;
-  border:none;
-  background:#fff;
-  color:#8b0000;
-  border-radius:4px;
+.header-center nav button {
+  margin: 0 6px;
+  padding: 10px 22px;
+  font-size: 17px;
+  cursor: pointer;
+  border: none;
+  background: #fff;
+  color: #8b0000;
+  border-radius: 4px;
 }
 
-.header-center nav button:hover{
-  background:#eee;
-}
-
-/* ================= CONTENIDO ================= */
-.main-content{
-  flex:1;                    /* ocupa todo lo que queda */
-  padding:20px;
-  overflow:hidden;           /* ❌ no scroll acá */
+.header-center nav button:hover {
+  background: #eee;
 }
 
 /* ================= SECCIONES ================= */
-.section{
-  display:none;
-  height:100%;
+.section {
+  display: none;
+  padding: 20px;
+  height: calc(100vh - 150px); /* pantalla menos header */
 }
 
-.section.active{
-  display:block;
+.section.active {
+  display: block;
 }
 
 /* ================= LAYOUT INICIO ================= */
-.layout{
-  display:flex;
-  gap:20px;
-  height:100%;
+.layout {
+  display: flex;
+  gap: 20px;
+  height: 100%;
 }
 
-.box{
-  background:#fff;
-  padding:20px;
-  border-radius:6px;
-  flex:1;
-  overflow:hidden;
+.box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  flex: 1;
+  overflow: hidden;
 }
 
-/* ================= CLUBES ================= */
-.club-card{
-  border:1px solid #ccc;
-  padding:15px;
-  margin-bottom:15px;
-  background:#fff;
+/* ================= TARJETAS ================= */
+.club-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #fff;
 }
 
-.club-details{
-  display:none;
-  margin-top:10px;
-  padding:10px;
-  background:#eef;
+.club-details {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background: #eef;
+}
+
+/* ================= BOTONES ================= */
+button {
+  cursor: pointer;
 }
 
 /* ================= JUGADORES ================= */
-#jugadores{
-  display:flex;
-  flex-direction:column;
-  height:100%;
-  gap:15px;
+#jugadores {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-/* ================= TABLA CON SCROLL PROPIO ================= */
-.table-wrapper{
-  flex:1;                 /* 🔥 define la altura visible */
-  overflow-y:auto;         /* ✅ scroll SOLO acá */
-  overflow-x:auto;
-  background:#fff;
-  border:1px solid #ccc;
-  border-radius:6px;
+/* ================= TABLA CON VISOR ================= */
+.table-wrapper {
+  width: 100%;             /* ocupa todo el ancho disponible */
+  max-height: 400px;       /* altura del visor */
+  overflow-x: auto;        /* scroll horizontal si la tabla es más ancha */
+  overflow-y: auto;        /* scroll vertical si hay muchas filas */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  background: #fff;
+  box-sizing: border-box;
 }
 
 /* TABLA */
-table{
-  width:100%;
-  min-width:900px;
-  border-collapse:collapse;
-  font-size:15px;
+table {
+  width: 100%;
+  min-width: 900px;        /* ancho mínimo de la tabla */
+  border-collapse: collapse;
+  font-size: 15px;
 }
 
-th, td{
-  border:1px solid #999;
-  padding:8px;
-  text-align:center;
-  white-space:nowrap;
+th, td {
+  border: 1px solid #999;
+  padding: 8px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* ENCABEZADO FIJO */
-th{
-  position:sticky;
-  top:0;
-  background:#8b0000;
-  color:#fff;
-  z-index:2;
+th {
+  position: sticky;
+  top: 0;
+  background: #8b0000;
+  color: #fff;
+  z-index: 2;
 }
 
 /* ================= FORMULARIOS ================= */
-input, select{
-  padding:6px;
-  font-size:15px;
+input, select {
+  padding: 6px;
+  font-size: 15px;
 }
 
-input[type="number"]{
-  width:60px;
+input[type="number"] {
+  width: 60px;
 }
 
-hr{
-  margin:20px 0;
+hr {
+  margin: 20px 0;
 }
 
 /* ================= MOBILE ================= */
-@media (max-width: 768px){
+@media (max-width: 768px) {
 
   /* HEADER */
-  .main-header{
-    padding:14px 12px;
+  .main-header {
+    padding: 14px 12px;
   }
 
-  .logo{
-    left:12px;
-    top:12px;
-    transform:none;
-    height:60px;
+  .logo {
+    left: 12px;
+    top: 12px;
+    transform: none;
+    height: 60px;
   }
 
-  .header-center{
-    margin-left:90px;
-    align-items:flex-start;
-    text-align:left;
+  .header-center {
+    margin-left: 90px;
+    align-items: flex-start;
+    text-align: left;
   }
 
-  .header-center h1{
-    font-size:20px;
-    line-height:1.25;
+  .header-center h1 {
+    font-size: 20px;
+    line-height: 1.25;
   }
 
-  .header-center nav{
-    display:flex;
-    gap:6px;
-    flex-wrap:wrap;
+  .header-center nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
-  .header-center nav button{
-    font-size:14px;
-    padding:7px 14px;
+  .header-center nav button {
+    font-size: 14px;
+    padding: 7px 14px;
   }
 
   /* LAYOUT */
-  .layout{
-    flex-direction:column;
+  .layout {
+    flex-direction: column;
   }
 
-  table{
-    min-width:700px;
-    font-size:14px;
+  /* TABLA */
+  .table-wrapper {
+    max-height: 300px; /* altura del visor en móvil */
+    padding: 5px;
+  }
+
+  table {
+    min-width: 600px;  /* tabla más compacta */
+    font-size: 13px;
   }
 }
