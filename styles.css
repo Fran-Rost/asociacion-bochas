@@ -157,34 +157,43 @@ hr{
 /* ================= MOBILE ================= */
 @media (max-width: 768px){
 
-  /* HEADER */
+  .main-header{
+    padding:15px 10px;
+  }
+
+  /* LOGO */
   .logo{
-    height:75px;
+    position:absolute;
     left:10px;
+    top:15px;
+    transform:none;
+    height:65px;
+  }
+
+  /* CENTRO */
+  .header-center{
+    margin-left:80px; /* deja espacio al logo */
+    align-items:center;
+    text-align:center;
   }
 
   .header-center h1{
-    font-size:22px;
-    padding:0 10px;
+    font-size:20px;
+    line-height:1.2;
+    margin-bottom:10px;
+  }
+
+  /* NAV */
+  .header-center nav{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:6px;
   }
 
   .header-center nav button{
     font-size:14px;
     padding:8px 14px;
-    margin:4px;
-  }
-
-  /* LAYOUT */
-  .layout{
-    flex-direction:column;
-  }
-
-  /* ESPACIADOS */
-  .section{
-    padding:15px;
-  }
-
-  .box{
-    padding:15px;
+    margin:0;
   }
 }
