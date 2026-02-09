@@ -135,6 +135,29 @@ hr {
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
 
+  /* Permitir scroll normal en móviles */
+  body, html {
+      height: 100%;
+     overflow-x: hidden;
+  }
+
+  .section {
+     display: none;
+     padding: 20px;
+     overflow-y: auto; /* esto permite que cada sección se desplace si es más alta que la pantalla */
+  }
+
+  .layout {
+     display: flex;
+     flex-wrap: wrap;
+      gap: 20px;
+  }
+
+  iframe {
+     max-width: 100%;
+      height: 400px;
+  }
+
   .main-header {
     padding: 14px 12px;
   }
