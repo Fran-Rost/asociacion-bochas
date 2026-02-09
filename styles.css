@@ -6,11 +6,7 @@
 }
 
 html, body {
-  height: 100%;
-  overflow: auto;
-}
-
-body {
+  overflow-x: hidden; /* solo bloqueo horizontal */
   font-family: Arial, Helvetica, sans-serif;
   background: #f2f2f2;
   font-size: 17px;
@@ -65,7 +61,7 @@ body {
 .section {
   display: none;
   padding: 20px;
-  height: calc(100vh - 150px);
+  /* quitamos height fija para permitir scroll natural */
 }
 
 .section.active {
@@ -76,20 +72,19 @@ body {
 .layout {
   display: flex;
   gap: 20px;
-  height: 100%;
+  flex-wrap: wrap; /* permite que las cajas bajen si no entran */
 }
 
 .box {
   background: #fff;
   padding: 20px;
   border-radius: 6px;
-  flex: 1;
-  overflow: hidden;
+  flex: 1 1 300px; /* flexible, permite crecer y encoger */
 }
 
 /* ================= SOLO TABLA DE JUGADORES ================= */
 #jugadores .table-wrapper {
-  max-height: 400px;       /* altura visible de la tabla */
+  max-height: 400px;
   overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #ccc;
@@ -169,7 +164,7 @@ hr {
   }
 
   .layout {
-    flex-direction: column;
+    flex-direction: column; /* cajas apiladas en móvil */
   }
 
   #jugadores table {
@@ -177,6 +172,3 @@ hr {
     font-size: 13px;
   }
 }
-
-}
-
