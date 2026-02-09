@@ -52,6 +52,33 @@ th{
   background:#8b0000;
   color:#fff;
 }
+/* VISOR DE TABLA */
+.table-visor {
+  max-height: 400px;       /* Altura máxima del visor */
+  overflow-x: auto;        /* Scroll horizontal si es necesario */
+  overflow-y: auto;        /* Scroll vertical */
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 15px;
+}
+
+#tablaJugadores th, #tablaJugadores td{
+  border:1px solid #999;
+  padding:8px;
+  text-align:center;
+  white-space: nowrap; /* Para que las columnas no se rompan */
+}
+
+#tablaJugadores th{
+  background:#8b0000;
+  color:#fff;
+  position: sticky;  /* Cabecera fija al hacer scroll */
+  top: 0;
+  z-index: 2;
+}
+
 input,select{padding:5px;}
 input[type="number"]{width:60px;}
 .save{
@@ -144,53 +171,53 @@ Ubicación: <input id="nuevoClubUbicacion">
 
 <!-- ================= JUGADORES ================= -->
 <section id="jugadores" class="section">
-  <div class="box">
-    <h2>Jugadores</h2>
+<div class="box">
+  <h2>Jugadores</h2>
 
-    <!-- VISOR DE TABLA -->
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Club</th>
-            <th>Categoría</th>
-            <th>Jugados</th>
-            <th>1° Ronda</th>
-            <th>Zona</th>
-            <th>16avos</th>
-            <th>Octavos</th>
-            <th>Cuartos</th>
-            <th>Semifinal</th>
-            <th>Subcampeón</th>
-            <th>Campeón</th>
-          </tr>
-        </thead>
-        <tbody id="tablaJugadores"></tbody>
-      </table>
-    </div>
+  <!-- VISOR DE TABLA -->
+ <div class="table-visor">
+  <table id="tablaJugadores">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Club</th>
+        <th>Categoría</th>
+        <th>Jugados</th>
+        <th>1° Ronda</th>
+        <th>Zona</th>
+        <th>16avos</th>
+        <th>Octavos</th>
+        <th>Cuartos</th>
+        <th>Semifinal</th>
+        <th>Subcampeón</th>
+        <th>Campeón</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody id="tablaJugadoresBody"></tbody>
+  </table>
+</div>
 
-    <!-- BOTONES FUERA DEL VISOR -->
-    <button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
-    <hr>
 
-    <h3>Agregar jugador</h3>
-    Nombre: <input id="nuevoJugadorNombre">
+  <button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
+  <hr>
 
-    Club:
-    <select id="nuevoJugadorClub"></select>
+  <h3>Agregar jugador</h3>
+  Nombre: <input id="nuevoJugadorNombre">
 
-    Categoría:
-    <select id="nuevoJugadorCategoria">
-      <option>Primera</option>
-      <option>Segunda</option>
-      <option>Tercera</option>
-    </select>
+  Club:
+  <select id="nuevoJugadorClub"></select>
 
-    <button class="save" onclick="agregarJugador()">Agregar jugador</button>
-  </div>
+  Categoría:
+  <select id="nuevoJugadorCategoria">
+    <option>Primera</option>
+    <option>Segunda</option>
+    <option>Tercera</option>
+  </select>
+
+  <button class="save" onclick="agregarJugador()">Agregar jugador</button>
+</div>
 </section>
-
 
 <script>
 const db = getDB();
@@ -414,10 +441,12 @@ db.clubes.forEach((c,i)=>{
 /* ================= JUGADORES ================= */
 const tabla=document.getElementById("tablaJugadores");
 function cargarJugadores(){
-  tabla.innerHTML="";
+  const tbody = document.getElementById("tablaJugadoresBody");
+  tbody.innerHTML = ""; // SOLO EL CUERPO, no el thead
+
   db.clubes.forEach((club,ci)=>{
     club.jugadores.forEach((j,ji)=>{
-      tabla.innerHTML+=`
+      tbody.innerHTML+=`
         <tr>
           <td><input value="${j.nombre}"></td>
 
@@ -441,13 +470,10 @@ function cargarJugadores(){
           ${j.stats.map(s=>`<td><input type="number" value="${s}"></td>`).join("")}
 
           <td>
-            <button class="save"
-              style="background:#a00"
-              onclick="eliminarJugador(${ci},${ji})">
-              ✕
-            </button>
+            <button class="save" style="background:#a00" onclick="eliminarJugador(${ci},${ji})">✕</button>
           </td>
-        </tr>`;
+        </tr>
+      `;
     });
   });
 }
