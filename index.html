@@ -310,25 +310,35 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Clubes
-  const contClubes = document.getElementById("clubesContainer");
-  contClubes.innerHTML = "";
-  db.clubes.forEach((club,i)=>{
-    const card=document.createElement("div");
-    card.className="club-card";
-    card.innerHTML=`
-      <h3>${club.nombre}</h3>
-      <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
-      <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
-      <div id="club-${i}" class="club-details">
-        <ul>
-          ${["Primera","Segunda","Tercera"].map(cat=>`
-            <li><strong>${cat}:</strong> ${club.jugadores.filter(j=>j.categoria===cat).map(j=>j.nombre).join(", ") || "-"}</li>
-          `).join("")}
-        </ul>
-      </div>
-    `;
-    contClubes.appendChild(card);
-  });
+const contClubes = document.getElementById("clubesContainer");
+contClubes.innerHTML = "";
+
+db.clubes.forEach((club, i) => {
+  const jugadores = jugadoresPorClub[club.id] || [];
+
+  const card = document.createElement("div");
+  card.className = "club-card";
+  card.innerHTML = `
+    <h3>${club.nombre}</h3>
+    <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
+    <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
+    <div id="club-${i}" class="club-details">
+      <ul>
+        ${["Primera", "Segunda", "Tercera"].map(cat => `
+          <li><strong>${cat}:</strong>
+            ${
+              jugadores
+                .filter(j => j.categoria === cat)
+                .map(j => j.nombre)
+                .join(", ") || "-"
+            }
+          </li>
+        `).join("")}
+      </ul>
+    </div>
+  `;
+  contClubes.appendChild(card);
+});
 
   // Jugadores
   function cargarJugadores(){
@@ -355,5 +365,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
