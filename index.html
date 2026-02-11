@@ -309,7 +309,25 @@ document.addEventListener("DOMContentLoaded", () => {
     internos.appendChild(div);
   });
 
-  // Clubes
+  /* =================== CLUBES =================== */
+
+const db = await getDB();
+
+if (!db || !Array.isArray(db.clubes) || !Array.isArray(db.jugadores)) {
+  console.error("DB no disponible todavía", db);
+  return;
+}
+
+// Agrupar jugadores por club_id
+const jugadoresPorClub = {};
+db.jugadores.forEach(j => {
+  if (!jugadoresPorClub[j.club_id]) {
+    jugadoresPorClub[j.club_id] = [];
+  }
+  jugadoresPorClub[j.club_id].push(j);
+});
+
+// Render clubes
 const contClubes = document.getElementById("clubesContainer");
 contClubes.innerHTML = "";
 
@@ -325,7 +343,8 @@ db.clubes.forEach((club, i) => {
     <div id="club-${i}" class="club-details">
       <ul>
         ${["Primera", "Segunda", "Tercera"].map(cat => `
-          <li><strong>${cat}:</strong>
+          <li>
+            <strong>${cat}:</strong>
             ${
               jugadores
                 .filter(j => j.categoria === cat)
@@ -365,6 +384,7 @@ db.clubes.forEach((club, i) => {
 
 </body>
 </html>
+
 
 
 
