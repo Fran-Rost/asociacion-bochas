@@ -311,12 +311,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* =================== CLUBES =================== */
 
-const db = await getDB();
+document.addEventListener("DOMContentLoaded", async () => {
 
-if (!db || !Array.isArray(db.clubes) || !Array.isArray(db.jugadores)) {
-  console.error("DB no disponible todavía", db);
-  return;
-}
+  const db = await getDB();
+
+  if (!db || !Array.isArray(db.clubes) || !Array.isArray(db.jugadores)) {
+    console.error("DB no disponible todavía", db);
+    return;
+  }
 
 // Agrupar jugadores por club_id
 const jugadoresPorClub = {};
@@ -384,6 +386,7 @@ db.clubes.forEach((club, i) => {
 
 </body>
 </html>
+
 
 
 
