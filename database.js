@@ -7,7 +7,7 @@
 
 /* ===== Supabase client ===== */
 const SUPABASE_URL = "https://arknvnqdjqmfvmrkguyz.supabase.co";
-const SUPABASE_KEY = "TU_ANON_PUBLIC_KEY"; // SOLO anon / publishable
+const SUPABASE_KEY = "sb_publishable_ltaNA7nnVozoSCOcZIjg"; // SOLO anon / publishable
 
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
@@ -118,3 +118,4 @@ async function saveDB(db) {
     "Por ahora solo lectura desde Supabase."
   );
 }
+
