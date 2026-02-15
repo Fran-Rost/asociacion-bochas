@@ -53,12 +53,34 @@ async function saveDB(db){
       .upsert(c);
   }
 
-  // ---- JUGADORES ----
+ // ---- JUGADORES ----
   for(const j of db.jugadores){
-    await supabaseClient
+
+    const { error } = await supabaseClient
       .from("jugadores")
-      .upsert(j);
+      .update({
+        nombre: j.nombre,
+        categoria: j.categoria,
+        club_id: j.club_id,
+        torneos: j.torneos,
+        ronda1: j.ronda1,
+        zona: j.zona,
+        dieciseisavos: j.dieciseisavos,
+        octavos: j.octavos,
+        cuartos: j.cuartos,
+        semifinal: j.semifinal,
+        subcampeon: j.subcampeon,
+        campeon: j.campeon
+      })
+      .eq("id", j.id);
+
+    if(error){
+      console.error("Error actualizando jugador:", error);
+    }
   }
+
+  alert("Jugadores actualizados correctamente");
+}
 
   // ---- TORNEOS FEDERADOS ----
   for(const t of db.torneosFederados){
@@ -79,4 +101,5 @@ async function saveDB(db){
 
 /* =================== Exponer global =================== */
 window.saveDB = saveDB;
+
 
