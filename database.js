@@ -42,3 +42,41 @@ async function getDB() {
 /* =================== Exponer global =================== */
 window.getDB = getDB;
 
+/* =================== GUARDAR CAMBIOS =================== */
+
+async function saveDB(db){
+
+  // ---- CLUBES ----
+  for(const c of db.clubes){
+    await supabaseClient
+      .from("clubes")
+      .upsert(c);
+  }
+
+  // ---- JUGADORES ----
+  for(const j of db.jugadores){
+    await supabaseClient
+      .from("jugadores")
+      .upsert(j);
+  }
+
+  // ---- TORNEOS FEDERADOS ----
+  for(const t of db.torneosFederados){
+    await supabaseClient
+      .from("torneos_federados")
+      .upsert(t);
+  }
+
+  // ---- TORNEOS INTERNOS ----
+  for(const t of db.torneosInternos){
+    await supabaseClient
+      .from("torneos_internos")
+      .upsert(t);
+  }
+
+  alert("Cambios guardados en Supabase");
+}
+
+/* =================== Exponer global =================== */
+window.saveDB = saveDB;
+
