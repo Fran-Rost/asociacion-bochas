@@ -226,9 +226,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   db = await getDB();
 
   cargarFederados();
-  cargarInternos();
   cargarClubesTorneo();
   cargarJugadores();
+  cargarClubesAdmin();
 });
 
 /* -------- Navegación -------- */
@@ -240,6 +240,10 @@ function showSection(id){
 /* ================= TORNEOS ================= */
 
 function cargarFederados(){
+  if(!db || !db.torneosFederados){
+  return;
+}
+
   const cont = document.getElementById("listaFederados");
   cont.innerHTML = "";
 
@@ -283,13 +287,21 @@ function cargarFederados(){
 }
 
 function renderInscriptosFederado(torneo, ti){
+
+  if(!torneo.inscriptos) torneo.inscriptos = {};
+
   return db.clubes.map(club=>{
-    const ins = torneo.inscriptos[club.nombre] || [];
+
+    const jugadoresDelClub = db.jugadores
+      ? db.jugadores.filter(j=>j.club_id === club.id)
+      : (club.jugadores || []);
+
+    const ins = torneo.inscriptos?.[club.nombre] || [];
 
     return `
       <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
         <strong>${club.nombre}</strong><br>
-        ${club.jugadores.map(j=>`
+        ${jugadoresDelClub.map(j=>`
           <label>
             <input type="checkbox"
               ${ins.includes(j.nombre) ? "checked" : ""}
@@ -331,6 +343,10 @@ function toggle(id){
 /* ================= TORNEOS INTERNOS ================= */
 
 function cargarInternos(){
+  if(!db || !db.torneosInternos){
+  return;
+}
+  
   const cont = document.getElementById("listaInternos");
   cont.innerHTML = "";
 
@@ -385,15 +401,22 @@ function agregarTorneoInterno(){
 /* Cargar al iniciar */
 cargarInternos();
 
-
 function cargarClubesTorneo(){
   const div=document.getElementById("torneoClubes");
   div.innerHTML="";
+
+  if(!db || !db.clubes) return;
+
   db.clubes.forEach(c=>{
+
+    const jugadoresDelClub = db.jugadores
+      ? db.jugadores.filter(j=>j.club_id === c.id)
+      : (c.jugadores || []);
+
     div.innerHTML+=`
       <div class="club">
         <strong>${c.nombre}</strong><br>
-        ${c.jugadores.map(j=>`
+        ${jugadoresDelClub.map(j=>`
           <label>
             <input type="checkbox" class="jugador" value="${j.nombre}">
             ${j.nombre}
@@ -432,20 +455,27 @@ function crearTorneoInterno(){
 }
 
 /* ================= CLUBES ================= */
-const adminClubes=document.getElementById("adminClubes");
-db.clubes.forEach((c,i)=>{
-  adminClubes.innerHTML+=`
-    <div class="club">
-      Nombre: <input value="${c.nombre}" class="c-nombre"><br>
-      Ubicación: <input value="${c.ubicacion}" class="c-ubicacion"><br><br>
+function cargarClubesAdmin(){
 
-      <button class="save"
-        style="background:#a00"
-        onclick="eliminarClub(${i})">
-        Eliminar club
-      </button>
-    </div>`;
-});
+  const adminClubes=document.getElementById("adminClubes");
+  adminClubes.innerHTML="";
+
+  if(!db || !db.clubes) return;
+
+  db.clubes.forEach((c,i)=>{
+    adminClubes.innerHTML+=`
+      <div class="club">
+        Nombre: <input value="${c.nombre}" class="c-nombre"><br>
+        Ubicación: <input value="${c.ubicacion}" class="c-ubicacion"><br><br>
+
+        <button class="save"
+          style="background:#a00"
+          onclick="eliminarClub(${c.id})">
+          Eliminar club
+        </button>
+      </div>`;
+  });
+}
 
 /* ================= JUGADORES ================= */
 const tabla=document.getElementById("tablaJugadores");
@@ -510,7 +540,12 @@ async function eliminarJugador(id){
 }
 
 const sel=document.getElementById("nuevoJugadorClub");
-db.clubes.forEach(c=>sel.innerHTML+=`<option>${c.nombre}</option>`);
+if(db && db.clubes){
+  sel.innerHTML="";
+  db.clubes.forEach(c=>{
+    sel.innerHTML+=`<option value="${c.id}">${c.nombre}</option>`;
+  });
+}
 
 function guardarClubes(){
   document.querySelectorAll(".c-nombre").forEach((n,i)=>db.clubes[i].nombre=n.value);
@@ -574,3 +609,4 @@ async function agregarJugador(){
 
 </body>
 </html>
+
