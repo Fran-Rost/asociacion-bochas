@@ -1,7 +1,7 @@
 /* =================== Supabase Adapter =================== */
 
 const SUPABASE_URL = "https://arknvnqdjqmfvmrkguyz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_XXXXXXXXXXXX"; // anon public key
+const SUPABASE_KEY = "sb_publishable_ZEfS7rs0k7A6rq-2Qu_3eA_i-Bsa7b6"; // anon public key
 
 // OJO: NO llamarlo "supabase"
 const supabaseClient = window.supabase.createClient(
@@ -41,3 +41,4 @@ async function getDB() {
 
 /* =================== Exponer global =================== */
 window.getDB = getDB;
+
