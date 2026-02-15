@@ -209,7 +209,7 @@ th {
   <div class="layout">
     <div class="box">
       <h2>Calendario</h2>
-      <iframe src="https://calendar.google.com/calendar/embed?ctz=America/Argentina/Cordoba" style="border:0" width="100" height="400"></iframe>
+      <iframe src="https://calendar.google.com/calendar/embed?ctz=America/Argentina/Cordoba" style="border:0" width="100%" height="400"></iframe>
     </div>
 
     <div class="box">
@@ -255,7 +255,6 @@ th {
 </section>
 
 <script>
-const db = getDB();
 
 /* ================= Navegación ================= */
 function showSection(id){
@@ -273,8 +272,16 @@ function toggle(id){
 }
 
 /* ================= Cargar datos ================= */
-document.addEventListener("DOMContentLoaded", () => {
-  // Torneos Federados
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const db = await getDB();
+
+  if (!db) {
+    console.error("DB no disponible", db);
+    return;
+  }
+
+  /* ================= Torneos Federados ================= */
   const fed = document.getElementById("torneosFederados");
   fed.innerHTML = "";
   db.torneosFederados?.forEach((t,i)=>{
@@ -284,17 +291,11 @@ document.addEventListener("DOMContentLoaded", () => {
       <h3>Torneo Federado #${t.id}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
       <p><strong>Observación:</strong> ${t.observacion}</p>
-      <button class="simple" onclick="toggle('fed-${i}')">Ver inscriptos</button>
-      <div id="fed-${i}" class="club-details">
-        ${Object.entries(t.inscriptos).map(([club,jug])=>`
-          <p><strong>${club}:</strong> ${jug.length?jug.join(", "):"No presenta"}</p>
-        `).join("")}
-      </div>
     `;
     fed.appendChild(div);
   });
 
-  // Torneos Internos
+  /* ================= Torneos Internos ================= */
   const internos = document.getElementById("torneosInternos");
   internos.innerHTML = "";
   db.torneosInternos?.forEach(t=>{
@@ -309,80 +310,67 @@ document.addEventListener("DOMContentLoaded", () => {
     internos.appendChild(div);
   });
 
-  /* =================== CLUBES =================== */
+  /* ================= CLUBES =================== */
 
-document.addEventListener("DOMContentLoaded", async () => {
+  const jugadoresPorClub = {};
+  db.jugadores.forEach(j => {
+    if (!jugadoresPorClub[j.club_id]) {
+      jugadoresPorClub[j.club_id] = [];
+    }
+    jugadoresPorClub[j.club_id].push(j);
+  });
 
-  const db = await getDB();
+  const contClubes = document.getElementById("clubesContainer");
+  contClubes.innerHTML = "";
 
-  if (!db || !Array.isArray(db.clubes) || !Array.isArray(db.jugadores)) {
-    console.error("DB no disponible todavía", db);
-    return;
-  }
+  db.clubes.forEach((club, i) => {
+    const jugadores = jugadoresPorClub[club.id] || [];
 
-// Agrupar jugadores por club_id
-const jugadoresPorClub = {};
-db.jugadores.forEach(j => {
-  if (!jugadoresPorClub[j.club_id]) {
-    jugadoresPorClub[j.club_id] = [];
-  }
-  jugadoresPorClub[j.club_id].push(j);
-});
+    const card = document.createElement("div");
+    card.className = "club-card";
+    card.innerHTML = `
+      <h3>${club.nombre}</h3>
+      <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
+      <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
+      <div id="club-${i}" class="club-details">
+        <ul>
+          ${["Primera","Segunda","Tercera"].map(cat => `
+            <li>
+              <strong>${cat}:</strong>
+              ${
+                jugadores
+                  .filter(j => j.categoria === cat)
+                  .map(j => j.nombre)
+                  .join(", ") || "-"
+              }
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    `;
+    contClubes.appendChild(card);
+  });
 
-// Render clubes
-const contClubes = document.getElementById("clubesContainer");
-contClubes.innerHTML = "";
+  /* ================= Jugadores ================= */
 
-db.clubes.forEach((club, i) => {
-  const jugadores = jugadoresPorClub[club.id] || [];
-
-  const card = document.createElement("div");
-  card.className = "club-card";
-  card.innerHTML = `
-    <h3>${club.nombre}</h3>
-    <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
-    <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
-    <div id="club-${i}" class="club-details">
-      <ul>
-        ${["Primera", "Segunda", "Tercera"].map(cat => `
-          <li>
-            <strong>${cat}:</strong>
-            ${
-              jugadores
-                .filter(j => j.categoria === cat)
-                .map(j => j.nombre)
-                .join(", ") || "-"
-            }
-          </li>
-        `).join("")}
-      </ul>
-    </div>
-  `;
-  contClubes.appendChild(card);
-});
-
-  // Jugadores
-  function cargarJugadores(){
+  window.cargarJugadores = function(){
     const tbody = document.getElementById("tablaJugadoresBody");
     tbody.innerHTML = "";
-    db.clubes.forEach(club=>{
-      club.jugadores.forEach(j=>{
-        const tr=document.createElement("tr");
-        tr.innerHTML=`
-          <td>${j.nombre}</td>
-          <td>${club.nombre}</td>
-          <td>${j.categoria}</td>
-          ${j.stats.map(s=>`<td>${s}</td>`).join("")}
-        `;
-        tbody.appendChild(tr);
-      });
+
+    db.jugadores.forEach(j=>{
+      const club = db.clubes.find(c=>c.id === j.club_id);
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td>${j.nombre}</td>
+        <td>${club?.nombre || "-"}</td>
+        <td>${j.categoria}</td>
+      `;
+      tbody.appendChild(tr);
     });
-  }
+  };
 
-  window.cargarJugadores = cargarJugadores;
-  showSection('inicio'); // asegura que inicio se vea al cargar
+  showSection('inicio');
+
 });
-</script>
 
-</body>
-</html>
+</script>
