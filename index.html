@@ -354,23 +354,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ================= Jugadores ================= */
 
   window.cargarJugadores = function(){
-    const tbody = document.getElementById("tablaJugadoresBody");
-    tbody.innerHTML = "";
+  const tbody = document.getElementById("tablaJugadoresBody");
+  tbody.innerHTML = "";
 
-    db.jugadores.forEach(j=>{
-      const club = db.clubes.find(c=>c.id === j.club_id);
-      const tr=document.createElement("tr");
-      tr.innerHTML=`
-        <td>${j.nombre}</td>
-        <td>${club?.nombre || "-"}</td>
-        <td>${j.categoria}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  };
+  db.jugadores.forEach(j => {
+
+    const club = db.clubes.find(c => c.id === j.club_id);
+
+    // 🔥 Convertimos el string en array real
+    const stats = JSON.parse(j.stats);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${j.nombre}</td>
+      <td>${club?.nombre || "-"}</td>
+      <td>${j.categoria}</td>
+      <td>${stats[0] ?? 0}</td>
+      <td>${stats[1] ?? 0}</td>
+      <td>${stats[2] ?? 0}</td>
+      <td>${stats[3] ?? 0}</td>
+      <td>${stats[4] ?? 0}</td>
+      <td>${stats[5] ?? 0}</td>
+      <td>${stats[6] ?? 0}</td>
+      <td>${stats[7] ?? 0}</td>
+      <td>${stats[8] ?? 0}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+};
 
   showSection('inicio');
 
 });
 
 </script>
+
