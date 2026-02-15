@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= Jugadores ================= */
 
-  window.cargarJugadores = function(){
+ window.cargarJugadores = function(){
   const tbody = document.getElementById("tablaJugadoresBody");
   tbody.innerHTML = "";
 
@@ -361,23 +361,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const club = db.clubes.find(c => c.id === j.club_id);
 
-    // 🔥 Convertimos el string en array real
-    const stats = JSON.parse(j.stats);
-
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${j.nombre}</td>
       <td>${club?.nombre || "-"}</td>
       <td>${j.categoria}</td>
-      <td>${stats[0] ?? 0}</td>
-      <td>${stats[1] ?? 0}</td>
-      <td>${stats[2] ?? 0}</td>
-      <td>${stats[3] ?? 0}</td>
-      <td>${stats[4] ?? 0}</td>
-      <td>${stats[5] ?? 0}</td>
-      <td>${stats[6] ?? 0}</td>
-      <td>${stats[7] ?? 0}</td>
-      <td>${stats[8] ?? 0}</td>
+      <td>${j.torneos}</td>
+      <td>${j.ronda1}</td>
+      <td>${j.zona}</td>
+      <td>${j.dieciseisavos}</td>
+      <td>${j.octavos}</td>
+      <td>${j.cuartos}</td>
+      <td>${j.semifinal}</td>
+      <td>${j.subcampeon}</td>
+      <td>${j.campeon}</td>
     `;
 
     tbody.appendChild(tr);
