@@ -330,10 +330,11 @@ function toggleJugador(ti, club, jugador, checked){
   }
 }
 
-function eliminarTorneoFederado(index){
+async function eliminarTorneoFederado(index){
   if(!confirm("¿Eliminar este torneo federado?")) return;
   db.torneosFederados.splice(index,1);
-  saveDB(db);
+  await saveDB(db);
+  db = await getDB();
   cargarFederados();
 }
 
@@ -376,12 +377,14 @@ function cargarInternos(){
   });
 }
 
-function eliminarTorneoInterno(index){
+async function eliminarTorneoInterno(index){
   if(!confirm("¿Eliminar este torneo interno?")) return;
   db.torneosInternos.splice(index,1);
-  saveDB(db);
+  await saveDB(db);
+  db = await getDB();
   cargarInternos();
 }
+
 
 function cargarClubesTorneo(){
   const div=document.getElementById("torneoClubes");
@@ -409,7 +412,7 @@ function cargarClubesTorneo(){
   });
 }
 
-function crearTorneoFederado(){
+async function crearTorneoFederado(){
   const ins={};
   document.querySelectorAll("#torneoClubes .club").forEach(c=>{
     const n=c.querySelector("strong").innerText;
@@ -423,17 +426,22 @@ function crearTorneoFederado(){
     observacion:fedObs.value,
     inscriptos:ins
   });
-  saveDB(db); location.reload();
+  await saveDB(db);
+  db = await getDB();
+  cargarFederados();
+  cargarClubesTorneo();
 }
 
-function crearTorneoInterno(){
+async function crearTorneoInterno(){
   db.torneosInternos.push({
     organizador:intOrg.value,
     nombre:intNombre.value,
     fecha:intFecha.value,
     descripcion:intDesc.value
   });
-  saveDB(db); location.reload();
+  await saveDB(db);
+  db = await getDB();
+  cargarInternos();
 }
 
 /* ================= CLUBES ================= */
@@ -548,7 +556,7 @@ async function guardarJugadores(){
 }
 
 async function agregarClub(){
-  db.clubes.push({nombre:nuevoClubNombre.value,ubicacion:nuevoClubUbicacion.value,jugadores:[]});
+  db.clubes.push({nombre:nuevoClubNombre.value,ubicacion:nuevoClubUbicacion.value});
   await saveDB(db);
   db = await getDB();
   cargarClubesAdmin();
