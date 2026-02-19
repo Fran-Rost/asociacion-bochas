@@ -31,7 +31,7 @@ async function getDB() {
   const { data: torneosInt } =
     await supabaseClient
       .from("torneos_internos")
-      .select("id, organizador_id, nombre, fecha, descripcion, clubes:organizador_id(nombre)");
+      .select("id, organizador_id, nombre, fecha, descripcion");
 
   const { data: torneosFedInscriptos } =
     await supabaseClient
@@ -67,7 +67,13 @@ async function getDB() {
     };
   });
 
-  db.torneosInternos = torneosInt || [];
+  db.torneosInternos = (torneosInt || []).map(torneo => {
+    const club = db.clubes.find(c => c.id === torneo.organizador_id);
+    return {
+      ...torneo,
+      clubes: club ? { nombre: club.nombre } : null
+    };
+  });
 
   return db;
 }
@@ -86,17 +92,14 @@ async function syncTable(table, rows, options = {}) {
   const rowsWithId = cleanedRows.filter(r => r.id != null);
   const rowsWithoutId = cleanedRows.filter(r => r.id == null);
 
-  const { data: existingRows, error: fetchError } =
-    await supabaseClient.from(table).select("id");
-
-  if (fetchError) throw fetchError;
-
-  if (rowsWithId.length > 0) {
-    const { error: upsertError } = await supabaseClient
+  for (const row of rowsWithId) {
+    const { id, ...payload } = row;
+    const { error: updateError } = await supabaseClient
       .from(table)
-      .upsert(rowsWithId, { onConflict: "id" });
+      .update(payload)
+      .eq("id", id);
 
-    if (upsertError) throw upsertError;
+    if (updateError) throw updateError;
   }
 
   let insertedRows = [];
@@ -108,19 +111,6 @@ async function syncTable(table, rows, options = {}) {
 
     if (insertError) throw insertError;
     insertedRows = data || [];
-  }
-
-  const localIds = new Set(rowsWithId.map(r => r.id));
-  const remoteIds = (existingRows || []).map(r => r.id);
-  const idsToDelete = remoteIds.filter(id => !localIds.has(id));
-
-  if (idsToDelete.length > 0) {
-    const { error: deleteError } = await supabaseClient
-      .from(table)
-      .delete()
-      .in("id", idsToDelete);
-
-    if (deleteError) throw deleteError;
   }
 
   return [...rowsWithId, ...insertedRows];
@@ -282,5 +272,6 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
+
 
 
