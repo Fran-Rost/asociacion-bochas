@@ -381,7 +381,7 @@ function cargarInternos(){
 
       <button class="save"
         style="background:#a00"
-        onclick="eliminarTorneoInterno(${i})">
+        onclick="eliminarTorneoInterno(${t.id ?? "null"}, ${i})">
         Eliminar torneo
       </button>
     `;
@@ -389,7 +389,7 @@ function cargarInternos(){
   });
 }
 
-async function eliminarTorneoInterno(index){
+async function eliminarTorneoInterno(id, index){
   if(!confirm("¿Eliminar este torneo interno?")) return;
   
   const torneo = db.torneosInternos[index];
@@ -618,4 +618,5 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
