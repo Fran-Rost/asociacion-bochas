@@ -418,25 +418,24 @@ async function eliminarTorneoInterno(index){
   const torneo = db.torneosInternos[index];
   const torneoId = Number(torneo?.id);
 
-  if(!Number.isInteger(torneoId) || torneoId <= 0) {
-    alert(`No se pudo eliminar el torneo interno: ${deleteInternoError.message}${getPrimaryKeyHelpMessage(deleteInternoError.message)}`);
+  if(!Number.isInteger(torneoId) || torneoId <= 0){
+    alert("Este torneo no tiene un ID válido en la base de datos.");
     return;
   }
 
-  const { error: deleteInternoError } = await supabaseClient
+  const { error } = await supabaseClient
     .from("torneos_internos")
     .delete()
     .eq("id", torneoId);
 
-  if(deleteInternoError) {
-    alert(`No se pudo eliminar el torneo interno: ${deleteInternoError.message}`);
+  if(error){
+    alert("Error al eliminar: " + error.message);
     return;
   }
-  
+
   db = await getDB();
   cargarInternos();
 }
-
 
 function cargarClubesTorneo(){
   const div=document.getElementById("torneoClubes");
@@ -658,10 +657,3 @@ async function agregarJugador(){
 
 </body>
 </html>
-
-
-
-
-
-
-
