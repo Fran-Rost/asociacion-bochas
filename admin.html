@@ -138,7 +138,7 @@ Observación: <input id="fedObs"><br><br>
 <hr>
 
 <h3>Crear torneo interno</h3>
-Organizador: <input id="intOrg"><br><br>
+Organizador: <select id="intOrg"></select><br><br>
 Nombre: <input id="intNombre"><br><br>
 Fecha: <input id="intFecha"><br><br>
 Descripción: <input id="intDesc"><br><br>
@@ -364,7 +364,7 @@ function cargarInternos(){
     div.innerHTML = `
       <strong>${t.nombre}</strong><br>
       <strong>Fecha:</strong> ${t.fecha}<br>
-      <strong>Organiza:</strong> ${t.organizador}<br>
+      <strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}<br>
       <em>${t.descripcion}</em><br><br>
 
       <button class="save"
@@ -434,7 +434,7 @@ async function crearTorneoFederado(){
 
 async function crearTorneoInterno(){
   db.torneosInternos.push({
-    organizador:intOrg.value,
+    organizador_id: intOrg.value ? parseInt(intOrg.value) : null,
     nombre:intNombre.value,
     fecha:intFecha.value,
     descripcion:intDesc.value
@@ -523,12 +523,22 @@ async function eliminarJugador(id){
 
 function cargarSelectClubes(){
   const sel = document.getElementById("nuevoJugadorClub");
-  if(!sel || !db || !db.clubes) return;
+  const intOrgSel = document.getElementById("intOrg");
+  if(!db || !db.clubes) return;
 
-  sel.innerHTML = "";
-  db.clubes.forEach(c=>{
-    sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
-  });
+  if (sel) {
+    sel.innerHTML = "";
+    db.clubes.forEach(c=>{
+      sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+  }
+
+  if (intOrgSel) {
+    intOrgSel.innerHTML = '<option value="">Asociación</option>';
+    db.clubes.forEach(c=>{
+      intOrgSel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+  }
 }
 
 async function guardarClubes(){
