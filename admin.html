@@ -2,324 +2,599 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>ADMIN - Asociación de Bochas</title>
+<title>Asociación de Bochas - ADMIN</title>
+<link rel="icon" type="image/png" href="logo-asociacion-removebg-preview.png">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="database.js"></script>
+<link rel="stylesheet" href="styles.css">
 
 <style>
-body{font-family:Arial;margin:0;background:#f2f2f2}
-.section{padding:25px}
-.box{background:#fff;padding:20px;border-radius:6px;margin-bottom:25px}
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #999;padding:6px;text-align:center}
-th{background:#8b0000;color:#fff}
-button{padding:5px 10px;margin:3px;cursor:pointer}
-input,select{padding:4px}
-.table-visor{max-height:400px;overflow:auto}
-.club-block{border:1px solid #ccc;padding:10px;margin-bottom:10px}
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  margin:0;
+  background:#f2f2f2;
+  font-size:17px;
+}
+
+nav button{
+  padding:10px 20px;
+  margin:5px;
+  font-size:16px;
+  cursor:pointer;
+}
+.section{display:none;padding:25px;}
+.active{display:block;}
+.box{
+  background:#fff;
+  padding:20px;
+  border-radius:6px;
+  margin-bottom:20px;
+}
+.club{
+  border:1px solid #ccc;
+  padding:15px;
+  margin-bottom:15px;
+}
+.players{margin-left:20px;}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #999;
+  padding:8px;
+  text-align:center;
+}
+th{
+  background:#8b0000;
+  color:#fff;
+}
+/* VISOR DE TABLA */
+.table-visor {
+  max-height: 400px;       /* Altura máxima del visor */
+  overflow-x: auto;        /* Scroll horizontal si es necesario */
+  overflow-y: auto;        /* Scroll vertical */
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 15px;
+}
+
+#tablaJugadores th, #tablaJugadores td{
+  border:1px solid #999;
+  padding:8px;
+  text-align:center;
+  white-space: nowrap; /* Para que las columnas no se rompan */
+}
+
+#tablaJugadores th{
+  background:#8b0000;
+  color:#fff;
+  position: sticky;  /* Cabecera fija al hacer scroll */
+  top: 0;
+  z-index: 2;
+}
+
+input,select{padding:5px;}
+input[type="number"]{width:60px;}
+.save{
+  background:#0b4f6c;
+  color:#fff;
+  padding:10px 25px;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+}
+hr{margin:25px 0;}
 </style>
 </head>
 
 <body>
 
-<div class="section">
+<header class="main-header">
+  <img src="logo-asociacion.png" alt="Logo Asociación" class="logo">
+
+  <div class="header-center">
+    <h1>Asociación de Bochas de Alta Gracia</h1>
+
+    <nav>
+      <button onclick="showSection('inicio')">Inicio</button>
+      <button onclick="showSection('clubes')">Clubes</button>
+      <button onclick="showSection('jugadores')">Jugadores</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= INICIO ================= -->
+<section id="inicio" class="section active">
+
+<!-- ===== TORNEOS FEDERADOS ===== -->
+<div class="box">
+<h2>Torneos Federados</h2>
+
+<div id="listaFederados"></div>
+
+<hr>
+
+<h3>Crear torneo federado</h3>
+Fecha: <input id="fedFecha"><br><br>
+Observación: <input id="fedObs"><br><br>
+
+<div id="torneoClubes"></div>
+
+<button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
+</div>
+
+<!-- ===== TORNEOS INTERNOS ===== -->
+<div class="box">
+<h2>Torneos Internos</h2>
+
+<div id="listaInternos"></div>
+
+<hr>
+
+<h3>Crear torneo interno</h3>
+Organizador: <select id="intOrg"></select><br><br>
+Nombre: <input id="intNombre"><br><br>
+Fecha: <input id="intFecha"><br><br>
+Descripción: <input id="intDesc"><br><br>
+
+<button class="save" onclick="crearTorneoInterno()">Crear torneo interno</button>
+</div>
+
+<button class="save" onclick="saveDB(db)">Guardar cambios</button>
+
+</section>
 
 <!-- ================= CLUBES ================= -->
+<section id="clubes" class="section">
 <div class="box">
 <h2>Clubes</h2>
-<div id="clubesAdmin"></div>
+
+<div id="adminClubes"></div>
+
+<hr>
 
 <h3>Agregar club</h3>
 Nombre: <input id="nuevoClubNombre">
 Ubicación: <input id="nuevoClubUbicacion">
-<button onclick="agregarClub()">Agregar</button>
+<button class="save" onclick="agregarClub()">Agregar club</button>
+
+<br><br>
+<button class="save" onclick="guardarClubes()">Guardar cambios</button>
 </div>
+</section>
 
 <!-- ================= JUGADORES ================= -->
+<section id="jugadores" class="section">
 <div class="box">
-<h2>Jugadores</h2>
+  <h2>Jugadores</h2>
 
-<div class="table-visor">
-<table>
-<thead>
-<tr>
-<th>Nombre</th>
-<th>Club</th>
-<th>Categoría</th>
-<th>Torneos</th>
-<th>1°</th>
-<th>Zona</th>
-<th>16°</th>
-<th>8°</th>
-<th>4°</th>
-<th>SF</th>
-<th>Sub</th>
-<th>Campeón</th>
-<th>Eliminar</th>
-</tr>
-</thead>
-<tbody id="tablaJugadores"></tbody>
-</table>
+  <!-- VISOR DE TABLA -->
+ <div class="table-visor">
+  <table id="tablaJugadores">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Club</th>
+        <th>Categoría</th>
+        <th>Jugados</th>
+        <th>1° Ronda</th>
+        <th>Zona</th>
+        <th>16avos</th>
+        <th>Octavos</th>
+        <th>Cuartos</th>
+        <th>Semifinal</th>
+        <th>Subcampeón</th>
+        <th>Campeón</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody id="tablaJugadoresBody"></tbody>
+  </table>
 </div>
 
-<h3>Agregar jugador</h3>
-Nombre: <input id="nuevoJugadorNombre">
-Club: <select id="nuevoJugadorClub"></select>
-Categoría:
-<select id="nuevoJugadorCategoria">
-<option>Primera</option>
-<option>Segunda</option>
-<option>Tercera</option>
-</select>
 
-<button onclick="agregarJugador()">Agregar</button>
+  <button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
+  <hr>
+
+  <h3>Agregar jugador</h3>
+  Nombre: <input id="nuevoJugadorNombre">
+
+  Club:
+  <select id="nuevoJugadorClub"></select>
+
+  Categoría:
+  <select id="nuevoJugadorCategoria">
+    <option>Primera</option>
+    <option>Segunda</option>
+    <option>Tercera</option>
+  </select>
+
+  <button class="save" onclick="agregarJugador()">Agregar jugador</button>
 </div>
-
-<!-- ================= TORNEOS FEDERADOS ================= -->
-<div class="box">
-<h2>Torneos Federados</h2>
-<div id="federadosAdmin"></div>
-
-<h3>Crear torneo federado</h3>
-Fecha: <input type="date" id="fedFecha">
-Observación: <input id="fedObs">
-<button onclick="crearFederado()">Crear</button>
-</div>
-
-<!-- ================= TORNEOS INTERNOS ================= -->
-<div class="box">
-<h2>Torneos Internos</h2>
-<div id="internosAdmin"></div>
-
-<h3>Crear torneo interno</h3>
-Organizador:
-<select id="intOrg"></select><br><br>
-Nombre: <input id="intNombre"><br><br>
-Fecha: <input type="date" id="intFecha"><br><br>
-Descripción: <input id="intDesc"><br><br>
-
-<button onclick="crearInterno()">Crear</button>
-</div>
-
-</div>
+</section>
 
 <script>
 let db;
 
-document.addEventListener("DOMContentLoaded", async ()=>{
-  await cargarTodo();
+document.addEventListener("DOMContentLoaded", async () => {
+  db = await getDB();
+
+  cargarFederados();
+  cargarInternos();
+  cargarClubesTorneo();
+  cargarJugadores();
+  cargarClubesAdmin();
+  cargarSelectClubes();
 });
 
-async function cargarTodo(){
-  db = await getDB();
-  renderClubes();
-  renderJugadores();
-  renderFederados();
-  renderInternos();
-  cargarSelects();
+/* -------- Navegación -------- */
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-/* ================= CLUBES ================= */
+/* ================= TORNEOS ================= */
 
-function renderClubes(){
-  const cont = document.getElementById("clubesAdmin");
-  cont.innerHTML="";
-
-  db.clubes.forEach(c=>{
-    cont.innerHTML+=`
-      <div class="club-block">
-        <input value="${c.nombre}" onchange="actualizarClub(${c.id}, this.value, '${c.ubicacion}')">
-        <input value="${c.ubicacion}" onchange="actualizarClub(${c.id}, '${c.nombre}', this.value)">
-        <button onclick="eliminarClub(${c.id})">Eliminar</button>
-      </div>
-    `;
-  });
+function cargarFederados(){
+  if(!db || !db.torneosFederados){
+  return;
 }
 
-async function agregarClub(){
-  await crearClub(nuevoClubNombre.value,nuevoClubUbicacion.value);
-  await cargarTodo();
-}
+  const cont = document.getElementById("listaFederados");
+  cont.innerHTML = "";
 
-async function eliminarClub(id){
-  if(!confirm("Eliminar club y sus jugadores?")) return;
-  await eliminarClubDB(id);
-  await cargarTodo();
-}
+  if(db.torneosFederados.length === 0){
+    cont.innerHTML = "<p>No hay torneos federados</p>";
+    return;
+  }
 
-/* ================= JUGADORES ================= */
+  db.torneosFederados.forEach((t,ti)=>{
+    const div = document.createElement("div");
+    div.className = "club";
 
-function renderJugadores(){
-  const tbody=document.getElementById("tablaJugadores");
-  tbody.innerHTML="";
+    div.innerHTML = `
+      <strong>Torneo #${t.id}</strong><br><br>
 
-  db.jugadores.forEach(j=>{
-    tbody.innerHTML+=`
-    <tr>
-      <td><input value="${j.nombre}" onchange="actualizarJugador(${j.id},{nombre:this.value})"></td>
-      <td>
-        <select onchange="actualizarJugador(${j.id},{club_id:parseInt(this.value)})">
-          ${db.clubes.map(c=>`
-            <option value="${c.id}" ${c.id===j.club_id?"selected":""}>${c.nombre}</option>
-          `).join("")}
-        </select>
-      </td>
-      <td>
-        <select onchange="actualizarJugador(${j.id},{categoria:this.value})">
-          <option ${j.categoria==="Primera"?"selected":""}>Primera</option>
-          <option ${j.categoria==="Segunda"?"selected":""}>Segunda</option>
-          <option ${j.categoria==="Tercera"?"selected":""}>Tercera</option>
-        </select>
-      </td>
-      ${["torneos","ronda1","zona","dieciseisavos","octavos","cuartos","semifinal","subcampeon","campeon"].map(campo=>`
-        <td>
-          <input type="number" value="${j[campo]||0}"
-          onchange="actualizarJugador(${j.id},{${campo}:parseInt(this.value)||0})">
-        </td>
-      `).join("")}
-      <td><button onclick="eliminarJugador(${j.id})">X</button></td>
-    </tr>
-    `;
-  });
-}
+      Fecha:
+      <input value="${t.fecha}"
+        onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
 
-async function agregarJugador(){
-  await crearJugador({
-    nombre:nuevoJugadorNombre.value,
-    categoria:nuevoJugadorCategoria.value,
-    club_id:parseInt(nuevoJugadorClub.value),
-    torneos:0,ronda1:0,zona:0,dieciseisavos:0,
-    octavos:0,cuartos:0,semifinal:0,subcampeon:0,campeon:0
-  });
-  await cargarTodo();
-}
+      Observación:
+      <input value="${t.observacion}"
+        onchange="db.torneosFederados[${ti}].observacion=this.value"><br><br>
 
-async function eliminarJugador(id){
-  if(!confirm("Eliminar jugador?")) return;
-  await eliminarJugadorDB(id);
-  await cargarTodo();
-}
+      <button class="save" onclick="toggle('ins-${ti}')">
+        Editar inscriptos
+      </button>
 
-/* ================= FEDERADOS ================= */
+      <button class="save"
+        style="background:#a00;margin-left:10px"
+        onclick="eliminarTorneoFederado(${ti})">
+        Eliminar torneo
+      </button>
 
-async function crearFederado(){
-  await crearTorneoFederado({
-    fecha:fedFecha.value,
-    observacion:fedObs.value
-  });
-  await cargarTodo();
-}
-
-async function renderFederados(){
-  const cont=document.getElementById("federadosAdmin");
-  cont.innerHTML="";
-
-  const { data: inscriptos } =
-    await supabaseClient.from("torneos_federados_inscriptos").select("*");
-
-  db.torneosFederados.forEach(t=>{
-    cont.innerHTML+=`
-      <div class="club-block">
-        <strong>${t.fecha}</strong> - ${t.observacion}
-        <button onclick="eliminarFederado(${t.id})">Eliminar</button>
-        <div id="ins-${t.id}"></div>
+      <div id="ins-${ti}" style="display:none;margin-top:15px">
+        ${renderInscriptosFederado(t,ti)}
       </div>
     `;
 
-    const div=document.getElementById(`ins-${t.id}`);
-
-    db.clubes.forEach(club=>{
-      const jugadoresClub=db.jugadores.filter(j=>j.club_id===club.id);
-
-      div.innerHTML+=`
-        <div style="margin-left:15px">
-          <strong>${club.nombre}</strong><br>
-          ${jugadoresClub.map(j=>{
-            const checked=inscriptos.some(i=>
-              i.torneo_id===t.id &&
-              i.club_id===club.id &&
-              i.jugador_id===j.id
-            );
-            return `
-              <label>
-                <input type="checkbox"
-                  ${checked?"checked":""}
-                  onchange="toggleInscripto(${t.id},${club.id},${j.id},this.checked)">
-                ${j.nombre}
-              </label><br>
-            `;
-          }).join("")}
-        </div>
-      `;
-    });
+    cont.appendChild(div);
   });
 }
 
-async function toggleInscripto(torneo_id,club_id,jugador_id,checked){
+function renderInscriptosFederado(torneo, ti){
+
+  if(!torneo.inscriptos) torneo.inscriptos = {};
+
+  return db.clubes.map(club=>{
+
+    const jugadoresDelClub = db.jugadores
+      ? db.jugadores.filter(j=>j.club_id === club.id)
+      : (club.jugadores || []);
+
+    const ins = torneo.inscriptos?.[club.nombre] || [];
+
+    return `
+      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
+        <strong>${club.nombre}</strong><br>
+        ${jugadoresDelClub.map(j=>`
+          <label>
+            <input type="checkbox"
+              ${ins.includes(j.nombre) ? "checked" : ""}
+              onchange="toggleJugador(${ti}, '${club.nombre}', '${j.nombre}', this.checked)">
+            ${j.nombre}
+          </label><br>
+        `).join("")}
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleJugador(ti, club, jugador, checked){
+  const ins = db.torneosFederados[ti].inscriptos;
+
+  if(!ins[club]) ins[club] = [];
+
   if(checked){
-    await supabaseClient.from("torneos_federados_inscriptos")
-    .insert({torneo_id,club_id,jugador_id});
-  }else{
-    await supabaseClient.from("torneos_federados_inscriptos")
-    .delete()
-    .match({torneo_id,club_id,jugador_id});
+    if(!ins[club].includes(jugador)){
+      ins[club].push(jugador);
+    }
+  } else {
+    ins[club] = ins[club].filter(j=>j!==jugador);
   }
 }
 
-async function eliminarFederado(id){
-  if(!confirm("Eliminar torneo federado?")) return;
-  await supabaseClient.from("torneos_federados_inscriptos").delete().eq("torneo_id",id);
-  await eliminarTorneoFederadoDB(id);
-  await cargarTodo();
+async function eliminarTorneoFederado(index){
+  if(!confirm("¿Eliminar este torneo federado?")) return;
+  db.torneosFederados.splice(index,1);
+  await saveDB(db);
+  db = await getDB();
+  cargarFederados();
 }
 
-/* ================= INTERNOS ================= */
+function toggle(id){
+  const e=document.getElementById(id);
+  e.style.display = e.style.display==="none"?"block":"none";
+}
 
-function renderInternos(){
-  const cont=document.getElementById("internosAdmin");
-  cont.innerHTML="";
+/* ================= TORNEOS INTERNOS ================= */
 
-  db.torneosInternos.forEach(t=>{
-    cont.innerHTML+=`
-      <div class="club-block">
-        ${t.nombre} - ${t.fecha} - ${t.clubes?.nombre || "Asociación"}
-        <button onclick="eliminarInterno(${t.id})">Eliminar</button>
+function cargarInternos(){
+  if(!db || !db.torneosInternos){
+  return;
+}
+  
+  const cont = document.getElementById("listaInternos");
+  cont.innerHTML = "";
+
+  if(db.torneosInternos.length === 0){
+    cont.innerHTML = "<p>No hay torneos internos cargados.</p>";
+    return;
+  }
+
+  db.torneosInternos.forEach((t,i)=>{
+    const div = document.createElement("div");
+    div.className = "club";
+    div.innerHTML = `
+      <strong>${t.nombre}</strong><br>
+      <strong>Fecha:</strong> ${t.fecha}<br>
+      <strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}<br>
+      <em>${t.descripcion}</em><br><br>
+
+      <button class="save"
+        style="background:#a00"
+        onclick="eliminarTorneoInterno(${i})">
+        Eliminar torneo
+      </button>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+async function eliminarTorneoInterno(index){
+  if(!confirm("¿Eliminar este torneo interno?")) return;
+  db.torneosInternos.splice(index,1);
+  await saveDB(db);
+  db = await getDB();
+  cargarInternos();
+}
+
+
+function cargarClubesTorneo(){
+  const div=document.getElementById("torneoClubes");
+  div.innerHTML="";
+
+  if(!db || !db.clubes) return;
+
+  db.clubes.forEach(c=>{
+
+    const jugadoresDelClub = db.jugadores
+      ? db.jugadores.filter(j=>j.club_id === c.id)
+      : (c.jugadores || []);
+
+    div.innerHTML+=`
+      <div class="club">
+        <strong>${c.nombre}</strong><br>
+        ${jugadoresDelClub.map(j=>`
+          <label>
+            <input type="checkbox" class="jugador" value="${j.nombre}">
+            ${j.nombre}
+          </label><br>
+        `).join("")}
       </div>
     `;
   });
 }
 
-async function crearInterno(){
-  await crearTorneoInterno({
-    organizador_id:intOrg.value?parseInt(intOrg.value):null,
+async function crearTorneoFederado(){
+  const ins={};
+  document.querySelectorAll("#torneoClubes .club").forEach(c=>{
+    const n=c.querySelector("strong").innerText;
+    const j=[];
+    c.querySelectorAll(".jugador").forEach(x=>x.checked&&j.push(x.value));
+    ins[n]=j;
+  });
+  db.torneosFederados.push({
+    id:Date.now(),
+    fecha:fedFecha.value,
+    observacion:fedObs.value,
+    inscriptos:ins
+  });
+  await saveDB(db);
+  db = await getDB();
+  cargarFederados();
+  cargarClubesTorneo();
+}
+
+async function crearTorneoInterno(){
+  db.torneosInternos.push({
+    organizador_id: intOrg.value ? parseInt(intOrg.value) : null,
     nombre:intNombre.value,
     fecha:intFecha.value,
     descripcion:intDesc.value
   });
-  await cargarTodo();
+  await saveDB(db);
+  db = await getDB();
+  cargarInternos();
 }
 
-async function eliminarInterno(id){
-  if(!confirm("Eliminar torneo interno?")) return;
-  await eliminarTorneoInternoDB(id);
-  await cargarTodo();
-}
+/* ================= CLUBES ================= */
+function cargarClubesAdmin(){
 
-/* ================= SELECTS ================= */
+  const adminClubes=document.getElementById("adminClubes");
+  adminClubes.innerHTML="";
 
-function cargarSelects(){
-  const sel=document.getElementById("nuevoJugadorClub");
-  const org=document.getElementById("intOrg");
-  sel.innerHTML="";
-  org.innerHTML="<option value=''>Asociación</option>";
+  if(!db || !db.clubes) return;
 
-  db.clubes.forEach(c=>{
-    sel.innerHTML+=`<option value="${c.id}">${c.nombre}</option>`;
-    org.innerHTML+=`<option value="${c.id}">${c.nombre}</option>`;
+  db.clubes.forEach((c,i)=>{
+    adminClubes.innerHTML+=`
+      <div class="club">
+        Nombre: <input value="${c.nombre}" class="c-nombre"><br>
+        Ubicación: <input value="${c.ubicacion}" class="c-ubicacion"><br><br>
+
+        <button class="save"
+          style="background:#a00"
+          onclick="eliminarClub(${c.id})">
+          Eliminar club
+        </button>
+      </div>`;
   });
 }
+
+/* ================= JUGADORES ================= */
+const tabla=document.getElementById("tablaJugadores");
+function cargarJugadores(){
+  const tbody = document.getElementById("tablaJugadoresBody");
+  tbody.innerHTML = "";
+
+  db.jugadores.forEach((j, ji)=>{
+    tbody.innerHTML += `
+      <tr>
+        <td><input value="${j.nombre || ""}" onchange="db.jugadores[${ji}].nombre=this.value"></td>
+
+        <td>
+          <select onchange="db.jugadores[${ji}].club_id=parseInt(this.value)">
+            ${db.clubes.map(c=>`
+              <option value="${c.id}" ${c.id===j.club_id?"selected":""}>${c.nombre}</option>
+            `).join("")}
+          </select>
+        </td>
+
+        <td>
+          <select onchange="db.jugadores[${ji}].categoria=this.value">
+            <option ${j.categoria==="Primera"?"selected":""}>Primera</option>
+            <option ${j.categoria==="Segunda"?"selected":""}>Segunda</option>
+            <option ${j.categoria==="Tercera"?"selected":""}>Tercera</option>
+          </select>
+        </td>
+
+        <td><input type="number" value="${j.torneos ?? 0}" onchange="db.jugadores[${ji}].torneos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.ronda1 ?? 0}" onchange="db.jugadores[${ji}].ronda1=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.zona ?? 0}" onchange="db.jugadores[${ji}].zona=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.dieciseisavos ?? 0}" onchange="db.jugadores[${ji}].dieciseisavos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.octavos ?? 0}" onchange="db.jugadores[${ji}].octavos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.cuartos ?? 0}" onchange="db.jugadores[${ji}].cuartos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.semifinal ?? 0}" onchange="db.jugadores[${ji}].semifinal=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.subcampeon ?? 0}" onchange="db.jugadores[${ji}].subcampeon=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.campeon ?? 0}" onchange="db.jugadores[${ji}].campeon=parseInt(this.value)||0"></td>
+
+        <td>
+          <button class="save" style="background:#a00" onclick="eliminarJugador(${j.id})">✕</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function eliminarJugador(id){
+  if(!confirm("¿Eliminar este jugador?")) return;
+
+  await supabaseClient.from("jugadores").delete().eq("id", id);
+
+  db = await getDB();
+  cargarJugadores();
+}
+
+function cargarSelectClubes(){
+  const sel = document.getElementById("nuevoJugadorClub");
+  const intOrgSel = document.getElementById("intOrg");
+  if(!db || !db.clubes) return;
+
+  if (sel) {
+    sel.innerHTML = "";
+    db.clubes.forEach(c=>{
+      sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+  }
+
+  if (intOrgSel) {
+    intOrgSel.innerHTML = '<option value="">Asociación</option>';
+    db.clubes.forEach(c=>{
+      intOrgSel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+  }
+}
+
+async function guardarClubes(){
+  document.querySelectorAll(".c-nombre").forEach((n,i)=>db.clubes[i].nombre=n.value);
+  document.querySelectorAll(".c-ubicacion").forEach((u,i)=>db.clubes[i].ubicacion=u.value);
+  await saveDB(db);
+}
+
+async function eliminarClub(id){
+  if(!confirm("⚠️ Esto eliminará el club y sus jugadores.\n¿Continuar?")) return;
+
+  await supabaseClient.from("jugadores").delete().eq("club_id", id);
+  await supabaseClient.from("clubes").delete().eq("id", id);
+
+  db = await getDB();
+  cargarClubesAdmin();
+  cargarJugadores();
+}
+
+
+async function guardarJugadores(){
+  await saveDB(db);
+  db = await getDB();
+  cargarJugadores();
+}
+
+async function agregarClub(){
+  db.clubes.push({nombre:nuevoClubNombre.value,ubicacion:nuevoClubUbicacion.value});
+  await saveDB(db);
+  db = await getDB();
+  cargarClubesAdmin();
+  cargarClubesTorneo();
+  cargarSelectClubes();
+}
+
+async function agregarJugador(){
+
+  await supabaseClient.from("jugadores").insert({
+    nombre: nuevoJugadorNombre.value,
+    categoria: nuevoJugadorCategoria.value,
+    club_id: parseInt(nuevoJugadorClub.value),
+    torneos: 0,
+    ronda1: 0,
+    zona: 0,
+    dieciseisavos: 0,
+    octavos: 0,
+    cuartos: 0,
+    semifinal: 0,
+    subcampeon: 0,
+    campeon: 0
+  });
+
+  db = await getDB();
+  cargarJugadores();
+}
+
 </script>
 
 </body>
