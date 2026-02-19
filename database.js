@@ -29,7 +29,9 @@ async function getDB() {
     await supabaseClient.from("torneos_federados").select("*");
 
   const { data: torneosInt } =
-    await supabaseClient.from("torneos_internos").select("*");
+    await supabaseClient
+      .from("torneos_internos")
+      .select("id, organizador_id, nombre, fecha, descripcion, clubes:organizador_id(nombre)");
 
   db.clubes = clubes || [];
   db.jugadores = jugadores || [];
@@ -114,9 +116,17 @@ async function saveDB(db){
   }
 
   // ---- TORNEOS INTERNOS ----
+  const torneosInternosPayload = torneosInternos.map(t => ({
+    id: t.id,
+    organizador_id: t.organizador_id || null,
+    nombre: t.nombre,
+    fecha: t.fecha,
+    descripcion: t.descripcion
+  }));
+
   const { error: intError } = await supabaseClient
     .from("torneos_internos")
-    .upsert(torneosInternos);
+    .upsert(torneosInternosPayload);
 
   if (intError) {
     console.error("Error guardando torneos internos:", intError);
