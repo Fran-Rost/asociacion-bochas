@@ -46,15 +46,20 @@ window.getDB = getDB;
 
 async function saveDB(db){
 
+  const clubes = db?.clubes || [];
+  const jugadores = db?.jugadores || [];
+  const torneosFederados = db?.torneosFederados || [];
+  const torneosInternos = db?.torneosInternos || [];
+
   // ---- CLUBES ----
-  for(const c of db.clubes){
+  for(const c of clubes){
     await supabaseClient
       .from("clubes")
       .upsert(c);
   }
 
  // ---- JUGADORES ----
-  for(const j of db.jugadores){
+  for(const j of jugadores){
 
     const { error } = await supabaseClient
       .from("jugadores")
@@ -80,17 +85,16 @@ async function saveDB(db){
   }
 
   alert("Jugadores actualizados correctamente");
-}
 
   // ---- TORNEOS FEDERADOS ----
-  for(const t of db.torneosFederados){
+  for(const t of torneosFederados){
     await supabaseClient
       .from("torneos_federados")
       .upsert(t);
   }
 
   // ---- TORNEOS INTERNOS ----
-  for(const t of db.torneosInternos){
+  for(const t of torneosInternos){
     await supabaseClient
       .from("torneos_internos")
       .upsert(t);
@@ -101,5 +105,3 @@ async function saveDB(db){
 
 /* =================== Exponer global =================== */
 window.saveDB = saveDB;
-
-
