@@ -476,6 +476,7 @@ async function crearTorneoFederado(){
   cargarClubesTorneo();
 }
 
+  async function crearTorneoInterno(){
   const { error } = await supabaseClient
     .from("torneos_internos")
     .insert({
@@ -649,6 +650,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
