@@ -332,8 +332,20 @@ function toggleJugador(ti, club, jugador, checked){
 
 async function eliminarTorneoFederado(index){
   if(!confirm("¿Eliminar este torneo federado?")) return;
-  db.torneosFederados.splice(index,1);
-  await saveDB(db);
+  
+  const torneo = db.torneosFederados[index];
+  if(!torneo) return;
+
+  await supabaseClient
+    .from("torneo_federado_inscriptos")
+    .delete()
+    .eq("torneo_id", torneo.id);
+
+  await supabaseClient
+    .from("torneos_federados")
+    .delete()
+    .eq("id", torneo.id);
+  
   db = await getDB();
   cargarFederados();
 }
@@ -379,8 +391,15 @@ function cargarInternos(){
 
 async function eliminarTorneoInterno(index){
   if(!confirm("¿Eliminar este torneo interno?")) return;
-  db.torneosInternos.splice(index,1);
-  await saveDB(db);
+  
+  const torneo = db.torneosInternos[index];
+  if(!torneo) return;
+
+  await supabaseClient
+    .from("torneos_internos")
+    .delete()
+    .eq("id", torneo.id);
+
   db = await getDB();
   cargarInternos();
 }
@@ -599,3 +618,4 @@ async function agregarJugador(){
 
 </body>
 </html>
+
