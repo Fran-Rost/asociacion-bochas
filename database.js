@@ -52,52 +52,75 @@ async function saveDB(db){
   const torneosInternos = db?.torneosInternos || [];
 
   // ---- CLUBES ----
-  for(const c of clubes){
-    await supabaseClient
-      .from("clubes")
-      .upsert(c);
+  const clubesPayload = clubes.map(c => ({
+    id: c.id,
+    nombre: c.nombre,
+    ubicacion: c.ubicacion
+  }));
+
+  const { error: clubesError } = await supabaseClient
+    .from("clubes")
+    .upsert(clubesPayload);
+
+  if (clubesError) {
+    console.error("Error guardando clubes:", clubesError);
+    throw clubesError;
   }
 
- // ---- JUGADORES ----
-  for(const j of jugadores){
+  // ---- JUGADORES ----
+  for (const j of jugadores) {
+    const payload = {
+      nombre: j.nombre,
+      categoria: j.categoria,
+      club_id: j.club_id,
+      torneos: j.torneos,
+      ronda1: j.ronda1,
+      zona: j.zona,
+      dieciseisavos: j.dieciseisavos,
+      octavos: j.octavos,
+      cuartos: j.cuartos,
+      semifinal: j.semifinal,
+      subcampeon: j.subcampeon,
+      campeon: j.campeon
+    };
 
-    const { error } = await supabaseClient
-      .from("jugadores")
-      .update({
-        nombre: j.nombre,
-        categoria: j.categoria,
-        club_id: j.club_id,
-        torneos: j.torneos,
-        ronda1: j.ronda1,
-        zona: j.zona,
-        dieciseisavos: j.dieciseisavos,
-        octavos: j.octavos,
-        cuartos: j.cuartos,
-        semifinal: j.semifinal,
-        subcampeon: j.subcampeon,
-        campeon: j.campeon
-      })
-      .eq("id", j.id);
+    let error;
 
-    if(error){
-      console.error("Error actualizando jugador:", error);
+    if (j.id) {
+      ({ error } = await supabaseClient
+        .from("jugadores")
+        .update(payload)
+        .eq("id", j.id));
+    } else {
+      ({ error } = await supabaseClient
+        .from("jugadores")
+        .insert(payload));
+    }
+
+    if (error) {
+      console.error("Error guardando jugador:", j, error);
+      throw error;
     }
   }
 
-  alert("Jugadores actualizados correctamente");
-
   // ---- TORNEOS FEDERADOS ----
-  for(const t of torneosFederados){
-    await supabaseClient
-      .from("torneos_federados")
-      .upsert(t);
+  const { error: fedError } = await supabaseClient
+    .from("torneos_federados")
+    .upsert(torneosFederados);
+
+  if (fedError) {
+    console.error("Error guardando torneos federados:", fedError);
+    throw fedError;
   }
 
   // ---- TORNEOS INTERNOS ----
-  for(const t of torneosInternos){
-    await supabaseClient
-      .from("torneos_internos")
-      .upsert(t);
+  const { error: intError } = await supabaseClient
+    .from("torneos_internos")
+    .upsert(torneosInternos);
+
+  if (intError) {
+    console.error("Error guardando torneos internos:", intError);
+    throw intError;
   }
 
   alert("Cambios guardados en Supabase");
