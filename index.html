@@ -320,7 +320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     div.innerHTML=`
       <h3>${t.nombre}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
-      <p><strong>Organiza:</strong> ${t.organizador || t.organiza || t.club_organizador || "-"}</p>
+      <p><strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}</p>
       <p>${t.descripcion}</p>
     `;
     internos.appendChild(div);
@@ -402,3 +402,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 </script>
+
