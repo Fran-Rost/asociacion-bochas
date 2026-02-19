@@ -334,17 +334,32 @@ async function eliminarTorneoFederado(index){
   if(!confirm("¿Eliminar este torneo federado?")) return;
   
   const torneo = db.torneosFederados[index];
-  if(!torneo) return;
+  const torneoId = Number(torneo?.id);
 
-  await supabaseClient
+  if(!Number.isInteger(torneoId) || torneoId <= 0) {
+    alert("Este torneo federado no tiene ID persistido. Guardá/recargá y volvé a intentar.");
+    return;
+  }
+
+  const { error: deleteInsError } = await supabaseClient
     .from("torneo_federado_inscriptos")
     .delete()
-    .eq("torneo_id", torneo.id);
+    .eq("torneo_id", torneoId);
 
-  await supabaseClient
+  if(deleteInsError) {
+    alert(`No se pudo eliminar inscriptos del torneo: ${deleteInsError.message}`);
+    return;
+  }
+
+  const { error: deleteTorneoError } = await supabaseClient
     .from("torneos_federados")
     .delete()
-    .eq("id", torneo.id);
+    .eq("id", torneoId);
+
+  if(deleteTorneoError) {
+    alert(`No se pudo eliminar el torneo federado: ${deleteTorneoError.message}`);
+    return;
+  }
   
   db = await getDB();
   cargarFederados();
@@ -379,27 +394,37 @@ function cargarInternos(){
       <strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}<br>
       <em>${t.descripcion}</em><br><br>
 
-      <button class="save"
-        style="background:#a00"
-        onclick="eliminarTorneoInterno(${t.id ?? "null"}, ${i})">
-        Eliminar torneo
-      </button>
+      <button class="save"␊
+        style="background:#a00"␊
+        onclick="eliminarTorneoInterno(${i})">␊
+        Eliminar torneo␊
+      </button>␊
     `;
     cont.appendChild(div);
   });
 }
 
-async function eliminarTorneoInterno(id, index){
+async function eliminarTorneoInterno(index){
   if(!confirm("¿Eliminar este torneo interno?")) return;
-  
-  const torneo = db.torneosInternos[index];
-  if(!torneo) return;
 
-  await supabaseClient
+  const torneo = db.torneosInternos[index];
+  const torneoId = Number(torneo?.id);
+
+  if(!Number.isInteger(torneoId) || torneoId <= 0) {
+    alert("Este torneo todavía no tiene ID persistido. Guardá/recargá y volvé a intentar.");
+    return;
+  }
+
+  const { error: deleteInternoError } = await supabaseClient
     .from("torneos_internos")
     .delete()
-    .eq("id", torneo.id);
+    .eq("id", torneoId);
 
+  if(deleteInternoError) {
+    alert(`No se pudo eliminar el torneo interno: ${deleteInternoError.message}`);
+    return;
+  }
+  
   db = await getDB();
   cargarInternos();
 }
@@ -618,5 +643,6 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
