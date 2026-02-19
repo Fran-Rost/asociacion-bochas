@@ -1,7 +1,7 @@
 /* =================== Supabase Adapter =================== */
 
 const SUPABASE_URL = "https://arknvnqdjqmfvmrkguyz.supabase.co";
-const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY_AQUI";
+const SUPABASE_KEY = "sb_publishable_ZEfS7rs0k7A6rq-2Qu_3eA_i-Bsa7b6";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
@@ -136,3 +136,4 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
+
