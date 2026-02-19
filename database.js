@@ -1,7 +1,7 @@
 /* =================== Supabase Adapter =================== */
 
 const SUPABASE_URL = "https://arknvnqdjqmfvmrkguyz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_ZEfS7rs0k7A6rq-2Qu_3eA_i-Bsa7b6";
+const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY_AQUI";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
@@ -131,6 +131,8 @@ async function saveDB(db) {
   );
 
   const rowsInscriptos = [];
+  const uniqueInscriptos = new Set();
+
   (db.torneosFederados || []).forEach(torneo => {
     const torneoPersistido = torneosFederados.find(t => t.id === torneo.id);
     if (!torneoPersistido || !torneo.inscriptos) return;
@@ -145,6 +147,10 @@ async function saveDB(db) {
         );
 
         if (!jugador) return;
+
+        const uniqueKey = `${torneoPersistido.id}-${club.id}-${jugador.id}`;
+        if (uniqueInscriptos.has(uniqueKey)) return;
+        uniqueInscriptos.add(uniqueKey);
 
         rowsInscriptos.push({
           torneo_id: torneoPersistido.id,
@@ -165,7 +171,10 @@ async function saveDB(db) {
   if (rowsInscriptos.length > 0) {
     const { error: insertInscriptosError } = await supabaseClient
       .from("torneo_federado_inscriptos")
-      .insert(rowsInscriptos);
+      .upsert(rowsInscriptos, {
+        onConflict: "torneo_id,club_id,jugador_id",
+        ignoreDuplicates: true
+      });
 
     if (insertInscriptosError) throw insertInscriptosError;
   }
@@ -276,8 +285,4 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
-
-
-
-
 
