@@ -15,7 +15,8 @@ async function getDB() {
     clubes: [],
     jugadores: [],
     torneosFederados: [],
-    torneosInternos: []
+    torneosInternos: [],
+    torneoFederadoInscriptos: []
   };
 
   const { data: clubes } =
@@ -32,12 +33,156 @@ async function getDB() {
       .from("torneos_internos")
       .select("id, organizador_id, nombre, fecha, descripcion, clubes:organizador_id(nombre)");
 
+  const { data: torneosFedInscriptos } =
+    await supabaseClient
+      .from("torneo_federado_inscriptos")
+      .select("id, torneo_id, club_id, jugador_id");
+
   db.clubes = clubes || [];
   db.jugadores = jugadores || [];
-  db.torneosFederados = torneosFed || [];
+  db.torneoFederadoInscriptos = torneosFedInscriptos || [];
+
+  db.torneosFederados = (torneosFed || []).map(torneo => {
+    const inscriptos = {};
+
+    db.clubes.forEach(club => {
+      inscriptos[club.nombre] = [];
+    });
+
+    db.torneoFederadoInscriptos
+      .filter(i => i.torneo_id === torneo.id)
+      .forEach(i => {
+        const club = db.clubes.find(c => c.id === i.club_id);
+        const jugador = db.jugadores.find(j => j.id === i.jugador_id);
+
+        if (!club || !jugador) return;
+        if (!inscriptos[club.nombre]) inscriptos[club.nombre] = [];
+
+        inscriptos[club.nombre].push(jugador.nombre);
+      });
+
+    return {
+      ...torneo,
+      inscriptos
+    };
+  });
+
   db.torneosInternos = torneosInt || [];
 
   return db;
+}
+
+/* =================== SAVE (SYNC) =================== */
+
+async function syncTable(table, rows, options = {}) {
+  const stripFields = options.stripFields || [];
+
+  const cleanedRows = rows.map(row => {
+    const next = { ...row };
+    stripFields.forEach(field => delete next[field]);
+    return next;
+  });
+
+  const rowsWithId = cleanedRows.filter(r => r.id != null);
+  const rowsWithoutId = cleanedRows.filter(r => r.id == null);
+
+  const { data: existingRows, error: fetchError } =
+    await supabaseClient.from(table).select("id");
+
+  if (fetchError) throw fetchError;
+
+  if (rowsWithId.length > 0) {
+    const { error: upsertError } = await supabaseClient
+      .from(table)
+      .upsert(rowsWithId, { onConflict: "id" });
+
+    if (upsertError) throw upsertError;
+  }
+
+  let insertedRows = [];
+  if (rowsWithoutId.length > 0) {
+    const { data, error: insertError } = await supabaseClient
+      .from(table)
+      .insert(rowsWithoutId)
+      .select("*");
+
+    if (insertError) throw insertError;
+    insertedRows = data || [];
+  }
+
+  const localIds = new Set(rowsWithId.map(r => r.id));
+  const remoteIds = (existingRows || []).map(r => r.id);
+  const idsToDelete = remoteIds.filter(id => !localIds.has(id));
+
+  if (idsToDelete.length > 0) {
+    const { error: deleteError } = await supabaseClient
+      .from(table)
+      .delete()
+      .in("id", idsToDelete);
+
+    if (deleteError) throw deleteError;
+  }
+
+  return [...rowsWithId, ...insertedRows];
+}
+
+async function saveDB(db) {
+  const clubes = await syncTable("clubes", db.clubes || []);
+  const jugadores = await syncTable("jugadores", db.jugadores || []);
+  const torneosFederados = await syncTable(
+    "torneos_federados",
+    db.torneosFederados || [],
+    { stripFields: ["inscriptos"] }
+  );
+  const torneosInternos = await syncTable("torneos_internos", db.torneosInternos || []);
+
+  const rowsInscriptos = [];
+  (db.torneosFederados || []).forEach(torneo => {
+    const torneoPersistido = torneosFederados.find(t => t.id === torneo.id);
+    if (!torneoPersistido || !torneo.inscriptos) return;
+
+    Object.entries(torneo.inscriptos).forEach(([clubNombre, jugadoresNombres]) => {
+      const club = clubes.find(c => c.nombre === clubNombre);
+      if (!club || !Array.isArray(jugadoresNombres)) return;
+
+      jugadoresNombres.forEach(jugadorNombre => {
+        const jugador = jugadores.find(
+          j => j.nombre === jugadorNombre && j.club_id === club.id
+        );
+
+        if (!jugador) return;
+
+        rowsInscriptos.push({
+          torneo_id: torneoPersistido.id,
+          club_id: club.id,
+          jugador_id: jugador.id
+        });
+      });
+    });
+  });
+
+  const { error: deleteInscriptosError } = await supabaseClient
+    .from("torneo_federado_inscriptos")
+    .delete()
+    .not("id", "is", null);
+
+  if (deleteInscriptosError) throw deleteInscriptosError;
+
+  if (rowsInscriptos.length > 0) {
+    const { error: insertInscriptosError } = await supabaseClient
+      .from("torneo_federado_inscriptos")
+      .insert(rowsInscriptos);
+
+    if (insertInscriptosError) throw insertInscriptosError;
+  }
+
+  return {
+    clubes,
+    jugadores,
+    torneosFederados,
+    torneosInternos,
+    torneoFederadoInscriptos: rowsInscriptos
+  };
 }
 
 /* =================== CLUBES =================== */
@@ -121,6 +266,7 @@ async function eliminarTorneoInternoDB(id) {
 /* =================== Exponer global =================== */
 
 window.getDB = getDB;
+window.saveDB = saveDB;
 
 window.crearClub = crearClub;
 window.actualizarClub = actualizarClub;
@@ -136,4 +282,5 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
+
 
