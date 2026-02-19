@@ -1,15 +1,14 @@
 /* =================== Supabase Adapter =================== */
 
 const SUPABASE_URL = "https://arknvnqdjqmfvmrkguyz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_ZEfS7rs0k7A6rq-2Qu_3eA_i-Bsa7b6"; // anon public key
+const SUPABASE_KEY = "TU_PUBLIC_ANON_KEY_AQUI";
 
-// OJO: NO llamarlo "supabase"
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
 
-/* =================== API =================== */
+/* =================== READ =================== */
 
 async function getDB() {
   const db = {
@@ -41,101 +40,99 @@ async function getDB() {
   return db;
 }
 
-/* =================== Exponer global =================== */
-window.getDB = getDB;
+/* =================== CLUBES =================== */
 
-/* =================== GUARDAR CAMBIOS =================== */
+async function crearClub(nombre, ubicacion) {
+  return await supabaseClient.from("clubes").insert({
+    nombre,
+    ubicacion
+  });
+}
 
-async function saveDB(db){
-
-  const clubes = db?.clubes || [];
-  const jugadores = db?.jugadores || [];
-  const torneosFederados = db?.torneosFederados || [];
-  const torneosInternos = db?.torneosInternos || [];
-
-  // ---- CLUBES ----
-  const clubesPayload = clubes.map(c => ({
-    id: c.id,
-    nombre: c.nombre,
-    ubicacion: c.ubicacion
-  }));
-
-  const { error: clubesError } = await supabaseClient
+async function actualizarClub(id, nombre, ubicacion) {
+  return await supabaseClient
     .from("clubes")
-    .upsert(clubesPayload);
+    .update({ nombre, ubicacion })
+    .eq("id", id);
+}
 
-  if (clubesError) {
-    console.error("Error guardando clubes:", clubesError);
-    throw clubesError;
-  }
+async function eliminarClubDB(id) {
+  await supabaseClient.from("jugadores").delete().eq("club_id", id);
+  return await supabaseClient.from("clubes").delete().eq("id", id);
+}
 
-  // ---- JUGADORES ----
-  for (const j of jugadores) {
-    const payload = {
-      nombre: j.nombre,
-      categoria: j.categoria,
-      club_id: j.club_id,
-      torneos: j.torneos,
-      ronda1: j.ronda1,
-      zona: j.zona,
-      dieciseisavos: j.dieciseisavos,
-      octavos: j.octavos,
-      cuartos: j.cuartos,
-      semifinal: j.semifinal,
-      subcampeon: j.subcampeon,
-      campeon: j.campeon
-    };
+/* =================== JUGADORES =================== */
 
-    let error;
+async function crearJugador(data) {
+  return await supabaseClient.from("jugadores").insert(data);
+}
 
-    if (j.id) {
-      ({ error } = await supabaseClient
-        .from("jugadores")
-        .update(payload)
-        .eq("id", j.id));
-    } else {
-      ({ error } = await supabaseClient
-        .from("jugadores")
-        .insert(payload));
-    }
+async function actualizarJugador(id, data) {
+  return await supabaseClient
+    .from("jugadores")
+    .update(data)
+    .eq("id", id);
+}
 
-    if (error) {
-      console.error("Error guardando jugador:", j, error);
-      throw error;
-    }
-  }
+async function eliminarJugadorDB(id) {
+  return await supabaseClient
+    .from("jugadores")
+    .delete()
+    .eq("id", id);
+}
 
-  // ---- TORNEOS FEDERADOS ----
-  const { error: fedError } = await supabaseClient
+/* =================== TORNEOS FEDERADOS =================== */
+
+async function crearTorneoFederado(data) {
+  return await supabaseClient
     .from("torneos_federados")
-    .upsert(torneosFederados);
+    .insert(data);
+}
 
-  if (fedError) {
-    console.error("Error guardando torneos federados:", fedError);
-    throw fedError;
-  }
+async function actualizarTorneoFederado(id, data) {
+  return await supabaseClient
+    .from("torneos_federados")
+    .update(data)
+    .eq("id", id);
+}
 
-  // ---- TORNEOS INTERNOS ----
-  const torneosInternosPayload = torneosInternos.map(t => ({
-    id: t.id,
-    organizador_id: t.organizador_id || null,
-    nombre: t.nombre,
-    fecha: t.fecha,
-    descripcion: t.descripcion
-  }));
+async function eliminarTorneoFederadoDB(id) {
+  return await supabaseClient
+    .from("torneos_federados")
+    .delete()
+    .eq("id", id);
+}
 
-  const { error: intError } = await supabaseClient
+/* =================== TORNEOS INTERNOS =================== */
+
+async function crearTorneoInterno(data) {
+  return await supabaseClient
     .from("torneos_internos")
-    .upsert(torneosInternosPayload);
+    .insert(data);
+}
 
-  if (intError) {
-    console.error("Error guardando torneos internos:", intError);
-    throw intError;
-  }
-
-  alert("Cambios guardados en Supabase");
+async function eliminarTorneoInternoDB(id) {
+  return await supabaseClient
+    .from("torneos_internos")
+    .delete()
+    .eq("id", id);
 }
 
 /* =================== Exponer global =================== */
-window.saveDB = saveDB;
 
+window.getDB = getDB;
+
+window.crearClub = crearClub;
+window.actualizarClub = actualizarClub;
+window.eliminarClubDB = eliminarClubDB;
+
+window.crearJugador = crearJugador;
+window.actualizarJugador = actualizarJugador;
+window.eliminarJugadorDB = eliminarJugadorDB;
+
+window.crearTorneoFederado = crearTorneoFederado;
+window.actualizarTorneoFederado = actualizarTorneoFederado;
+window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
+
+window.crearTorneoInterno = crearTorneoInterno;
+window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
