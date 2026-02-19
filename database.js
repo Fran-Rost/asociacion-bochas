@@ -28,7 +28,7 @@ async function getDB() {
   const { data: torneosFed } =
     await supabaseClient.from("torneos_federados").select("*");
 
-    const { data: torneosInt } =
+  const { data: torneosInt } =
     await supabaseClient
       .from("torneos_internos")
       .select("id, organizador_id, nombre, fecha, descripcion");
@@ -124,7 +124,11 @@ async function saveDB(db) {
     db.torneosFederados || [],
     { stripFields: ["inscriptos"] }
   );
-  const torneosInternos = await syncTable("torneos_internos", db.torneosInternos || []);
+  const torneosInternos = await syncTable(
+    "torneos_internos",
+    db.torneosInternos || [],
+    { stripFields: ["clubes"] }
+  );
 
   const rowsInscriptos = [];
   (db.torneosFederados || []).forEach(torneo => {
@@ -272,6 +276,7 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
+
 
 
 
