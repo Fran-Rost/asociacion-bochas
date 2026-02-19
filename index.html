@@ -288,16 +288,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const div=document.createElement("div");
     div.className="club-card";
 
-    const inscriptosHtml = t.inscriptos
-      ? Object.entries(t.inscriptos)
-          .map(([club, jugadores]) => `
-            <li>
-              <strong>${club}:</strong>
-              ${Array.isArray(jugadores) && jugadores.length ? jugadores.join(", ") : "-"}
-            </li>
-          `)
-          .join("")
-      : "";
+    const inscriptosData = typeof t.inscriptos === "string"
+      ? (() => { try { return JSON.parse(t.inscriptos); } catch { return {}; } })()
+      : (t.inscriptos || {});
+
+    const inscriptosHtml = Object.entries(inscriptosData)
+      .map(([club, jugadores]) => `
+        <li>
+          <strong>${club}:</strong>
+          ${Array.isArray(jugadores) && jugadores.length ? jugadores.join(", ") : "-"}
+        </li>
+      `)
+      .join("");
 
     div.innerHTML=`
       <h3>Torneo Federado #${t.id}</h3>
@@ -318,7 +320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     div.innerHTML=`
       <h3>${t.nombre}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
-      <p><strong>Organiza:</strong> ${t.organizador || t.organiza || "-"}</p>
+      <p><strong>Organiza:</strong> ${t.organizador || t.organiza || t.club_organizador || "-"}</p>
       <p>${t.descripcion}</p>
     `;
     internos.appendChild(div);
