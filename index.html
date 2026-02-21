@@ -468,7 +468,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       torneoProximosEl.innerHTML = "<p>No hay próximos partidos cargados.</p>";
     }
   }
-  /* ================= CLUBES =================== */
+ /* ================= CLUBES =================== */
 
   const jugadoresPorClub = {};
   db.jugadores.forEach(j => {
@@ -488,7 +488,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     card.className = "club-card";
     card.innerHTML = `
       <h3>${club.nombre}</h3>
-      ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" style="max-width:120px;max-height:120px;object-fit:contain;margin:8px 0;">` : ""}
       <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
       <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
       <div id="club-${i}" class="club-details">
@@ -516,21 +515,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("tablaJugadoresBody");
   tbody.innerHTML = "";
 
-  const criteriosActivos = sortFieldOrder
-    .map(field => sortCriteria.find(c => c.field === field))
-    .filter(Boolean);
-
-  const jugadoresOrdenados = [...db.jugadores].sort((a, b) => {
-    for (const criterion of criteriosActivos) {
-      const av = getSortValue(a, criterion.field, db);
-      const bv = getSortValue(b, criterion.field, db);
-      const result = compareValues(av, bv, criterion.direction);
-      if (result !== 0) return result;
-    }
-    return 0;
-  });
-
-  jugadoresOrdenados.forEach(j => {
+  db.jugadores.forEach(j => {
 
     const club = db.clubes.find(c => c.id === j.club_id);
 
@@ -552,6 +537,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     tbody.appendChild(tr);
   });
+};
 
   updateSortHeaders();
   updateSortIndicator();
@@ -562,6 +548,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 </script>
+
 
 
 
