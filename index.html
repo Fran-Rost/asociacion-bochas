@@ -127,6 +127,13 @@ html, body {
   max-height: 120px;
   object-fit: contain;
 }
+
+.club-details {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  background: #eef;
+}
   
 /* ================= TABLA JUGADORES ================= */
 .table-wrapper {
@@ -477,7 +484,7 @@ if (typeof window.getDB !== "function") {
   db.clubes.forEach((club, i) => {
     const jugadores = jugadoresPorClub[club.id] || [];
 
-   const card = document.createElement("div");
+    const card = document.createElement("div");
     card.className = "club-card";
     card.innerHTML = `
       <h3>${club.nombre}</h3>
@@ -486,10 +493,8 @@ if (typeof window.getDB !== "function") {
         <div class="club-info-box">
           <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
           <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
-        </div>
-      </div>
-      <div id="club-${i}" class="club-details">
-        <ul>
+          <div id="club-${i}" class="club-details">
+            <ul>
           ${["Primera","Segunda","Tercera"].map(cat => `
             <li>
               <strong>${cat}:</strong>
@@ -501,7 +506,9 @@ if (typeof window.getDB !== "function") {
               }
             </li>
           `).join("")}
-        </ul>
+            </ul>
+          </div>
+         </div>
       </div>
     `;
     contClubes.appendChild(card);
@@ -513,7 +520,21 @@ if (typeof window.getDB !== "function") {
   const tbody = document.getElementById("tablaJugadoresBody");
   tbody.innerHTML = "";
 
-  db.jugadores.forEach(j => {
+  const criteriosActivos = sortFieldOrder
+    .map(field => sortCriteria.find(c => c.field === field))
+    .filter(Boolean);
+
+  const jugadoresOrdenados = [...db.jugadores].sort((a, b) => {
+    for (const criterion of criteriosActivos) {
+      const av = getSortValue(a, criterion.field, db);
+      const bv = getSortValue(b, criterion.field, db);
+      const result = compareValues(av, bv, criterion.direction);
+      if (result !== 0) return result;
+    }
+    return 0;
+  });
+
+  jugadoresOrdenados.forEach(j => {
 
     const club = db.clubes.find(c => c.id === j.club_id);
 
@@ -535,6 +556,8 @@ if (typeof window.getDB !== "function") {
 
     tbody.appendChild(tr);
   });
+    updateSortHeaders();
+    updateSortIndicator();
 };
 
   updateSortHeaders();
@@ -544,6 +567,7 @@ if (typeof window.getDB !== "function") {
 });
 
 </script>
+
 
 
 
