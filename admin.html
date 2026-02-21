@@ -136,9 +136,6 @@ hr{margin:25px 0;}
 Fecha: <input id="fedFecha"><br><br>
 Observación: <input id="fedObs"><br><br>
 
-<p><strong>Inscriptos por club:</strong></p>
-<div id="torneoClubes"></div>
-
 <button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
 </div>
 
@@ -175,6 +172,8 @@ Descripción: <input id="intDesc"><br><br>
 <button class="save" onclick="crearTorneoInterno()">Crear torneo interno</button>
 </div>
 
+<button class="save" onclick="guardarTorneosNuevos()">Guardar torneos</button>
+<button class="save" onclick="saveDB(db)">Guardar cambios</button>
 
 </section>
 
@@ -268,7 +267,6 @@ if (typeof window.getDB !== "function") {
   cargarJugadores();
   cargarClubesAdmin();
   cargarSelectClubes();
-  renderTorneoClubes();
 });
 
 /* -------- Navegación -------- */
@@ -381,27 +379,6 @@ function toggle(id){
   e.style.display = e.style.display==="none"?"block":"none";
 }
 
-function renderTorneoClubes(){
-  const cont = document.getElementById("torneoClubes");
-  if (!cont || !db) return;
-
-  cont.innerHTML = db.clubes.map((club) => {
-    const jugadores = db.jugadores.filter((j) => j.club_id === club.id);
-
-    return `
-      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
-        <strong>${club.nombre}</strong><br>
-        ${jugadores.length ? jugadores.map((j) => `
-          <label>
-            <input type="checkbox" class="nuevo-fed-inscripto" data-club-id="${club.id}" value="${j.id}">
-            ${j.nombre}
-          </label><br>
-        `).join("") : "<em>Sin jugadores cargados</em>"}
-      </div>
-    `;
-  }).join("");
-}
-
   function getPrimaryKeyHelpMessage(errorMessage){
   const msg = String(errorMessage || "").toLowerCase();
   if(msg.includes("no primary keys") || msg.includes("primary key")){
@@ -456,6 +433,17 @@ function cargarTorneosNuevos(){
 
     cont.appendChild(div);
   });
+}
+
+async function guardarTorneosNuevos(){
+  try {
+    await saveDB(db);
+    db = await getDB();
+    cargarTorneosNuevos();
+    alert("Torneos guardados correctamente.");
+  } catch (error) {
+    alert(`No se pudieron guardar los torneos: ${error.message}`);
+  }
 }
 
 async function eliminarTorneoNuevo(index){
@@ -571,53 +559,23 @@ async function eliminarTorneoInterno(index){
 }
 
 async function crearTorneoFederado(){
-  const fecha = fedFecha.value?.trim();
-  const observacion = fedObs.value?.trim();
-
-  if (!fecha) {
-    alert("Ingresá una fecha para el torneo federado.");
-    return;
-  }
-
-  const { data: nuevoTorneo, error } = await supabaseClient
+  const { error } = await supabaseClient
     .from("torneos_federados")
-    .insert({ fecha, observacion })
-    .select("id")
-    .single();
+    .insert({
+      fecha: fedFecha.value,
+      observacion: fedObs.value
+    });
 
   if (error) {
     alert(`No se pudo crear el torneo federado: ${error.message}`);
     return;
   }
 
-  const torneoId = nuevoTorneo?.id;
-  const checks = [...document.querySelectorAll(".nuevo-fed-inscripto:checked")];
-
-  if (torneoId && checks.length) {
-    const rows = checks.map((check) => ({
-      torneo_id: torneoId,
-      club_id: parseInt(check.dataset.clubId, 10),
-      jugador_id: parseInt(check.value, 10)
-    }));
-
-    const { error: inscriptosError } = await supabaseClient
-      .from("torneo_federado_inscriptos")
-      .insert(rows);
-
-    if (inscriptosError) {
-      alert(`Se creó el torneo, pero hubo un error al guardar inscriptos: ${inscriptosError.message}`);
-    }
-  }
-
   fedFecha.value = "";
   fedObs.value = "";
-  document.querySelectorAll(".nuevo-fed-inscripto").forEach((check) => {
-    check.checked = false;
-  });
 
   db = await getDB();
   cargarFederados();
-  renderTorneoClubes();
 }
 
   async function crearTorneoInterno(){
@@ -705,7 +663,6 @@ function toggleSortCriterion(field){
   }
 
   cargarJugadores();
-  renderTorneoClubes();
 }
 
 function getSortValue(jugador, field){
@@ -796,7 +753,6 @@ async function eliminarJugador(id){
 
   db = await getDB();
   cargarJugadores();
-  renderTorneoClubes();
 }
 
 function cargarSelectClubes(){
@@ -870,7 +826,6 @@ async function guardarClubes(){
   db = await getDB();
   cargarClubesAdmin();
   cargarSelectClubes();
-  renderTorneoClubes();
 }
 
 async function eliminarClub(id){
@@ -882,7 +837,6 @@ async function eliminarClub(id){
   db = await getDB();
   cargarClubesAdmin();
   cargarJugadores();
-  renderTorneoClubes();
 }
 
 
@@ -924,7 +878,6 @@ async function agregarClub(){
   db = await getDB();
   cargarClubesAdmin();
   cargarSelectClubes();
-  renderTorneoClubes();
 }
 
 async function agregarJugador(){
