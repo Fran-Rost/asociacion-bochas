@@ -237,7 +237,7 @@ th {
       <h2>Calendario</h2>
       <iframe src="https://calendar.google.com/calendar/embed?ctz=America/Argentina/Cordoba" style="border:0" width="100%" height="400"></iframe>
       <hr style="margin:20px 0;">
-      <h2>Torneos Federados</h2>
+      <h2>Torneos</h2>
       <div id="torneosFederados"></div>
     </div>
 
@@ -372,32 +372,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  /* ================= Torneos Federados ================= */
+  /* ================= Torneos (torneos_nuevos) ================= */
   const fed = document.getElementById("torneosFederados");
   fed.innerHTML = "";
-  db.torneosFederados?.forEach((t,i)=>{
-    const div=document.createElement("div");
-    div.className="club-card";
+  (db.torneosNuevos || []).forEach(t => {
+    const div = document.createElement("div");
+    div.className = "club-card";
 
-    const inscriptosData = typeof t.inscriptos === "string"
-      ? (() => { try { return JSON.parse(t.inscriptos); } catch { return {}; } })()
-      : (t.inscriptos || {});
-
-    const inscriptosHtml = Object.entries(inscriptosData)
-      .map(([club, jugadores]) => `
-        <li>
-          <strong>${club}:</strong>
-          ${Array.isArray(jugadores) && jugadores.length ? jugadores.join(", ") : "-"}
-        </li>
-      `)
-      .join("");
-
-    div.innerHTML=`
-      <h3>Torneo Federado #${t.id}</h3>
-      <p><strong>Fecha:</strong> ${t.fecha}</p>
-      <p><strong>Observación:</strong> ${t.observacion}</p>
-      <p><strong>Inscriptos por club:</strong></p>
-      <ul>${inscriptosHtml || "<li>-</li>"}</ul>
+    div.innerHTML = `
+      <h3>${t.nombre || t.titulo || `Torneo #${t.id}`}</h3>
+      <p><strong>Fecha:</strong> ${t.fecha || "-"}</p>
+      <p><strong>Descripción:</strong> ${t.descripcion || t.observacion || "-"}</p>
     `;
     fed.appendChild(div);
   });
@@ -421,24 +406,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   const torneoActivoEl = document.getElementById("torneoActivo");
   const torneoProximosEl = document.getElementById("torneoProximosPartidos");
 
-  const torneosOrdenados = [...(db.torneosFederados || [])]
-    .sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+  const torneosOrdenados = [...(db.torneosNuevos || [])]
+    .sort((a, b) => {
+      const fechaA = String(a.fecha || a.created_at || "");
+      const fechaB = String(b.fecha || b.created_at || "");
+      return fechaB.localeCompare(fechaA);
+    });
 
   const torneoActivo = torneosOrdenados[0];
   if (torneoActivo) {
+    const tituloTorneo = torneoActivo.nombre || torneoActivo.titulo || `Torneo #${torneoActivo.id}`;
     torneoActivoEl.innerHTML = `
-      <p><strong>Activo:</strong> Torneo Federado #${torneoActivo.id}</p>
+      <p><strong>Activo:</strong> ${tituloTorneo}</p>
       <p><strong>Fecha:</strong> ${torneoActivo.fecha || "-"}</p>
-      <p><strong>Observación:</strong> ${torneoActivo.observacion || "-"}</p>
+      <p><strong>Observación:</strong> ${torneoActivo.observacion || torneoActivo.descripcion || "-"}</p>
     `;
 
     const proximos = [];
-    const inscriptos = torneoActivo.inscriptos || {};
-    Object.entries(inscriptos).forEach(([club, jugadores]) => {
-      (jugadores || []).forEach(jugador => {
-        proximos.push(`<li>${jugador} (${club})</li>`);
+    if (Array.isArray(torneoActivo.proximos_partidos)) {
+      torneoActivo.proximos_partidos.forEach(partido => {
+        if (typeof partido === "string") {
+          proximos.push(`<li>${partido}</li>`);
+          return;
+        }
+
+        const rivalA = partido?.equipo_a || partido?.jugador_a || partido?.local || "";
+        const rivalB = partido?.equipo_b || partido?.jugador_b || partido?.visitante || "";
+        const horario = partido?.hora || partido?.horario || "";
+        const enfrentamiento = [rivalA, rivalB].filter(Boolean).join(" vs ");
+        proximos.push(`<li>${[enfrentamiento, horario].filter(Boolean).join(" - ")}</li>`);
       });
-    });
+    } else {
+      const inscriptos = torneoActivo.inscriptos || {};
+      Object.entries(inscriptos).forEach(([club, jugadores]) => {
+        (jugadores || []).forEach(jugador => {
+          proximos.push(`<li>${jugador} (${club})</li>`);
+        });
+      });
+    }
 
     torneoProximosEl.innerHTML = proximos.length
       ? `<ul>${proximos.join("")}</ul>`
