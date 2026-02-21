@@ -84,8 +84,6 @@ html, body {
 
 /* ================= SOLO TABLA DE JUGADORES ================= */
 #jugadores .table-wrapper {
-  max-height: 400px;
-  overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -129,7 +127,7 @@ hr {
 
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
-  
+
   .main-header {
     padding: 14px 12px;
   }
