@@ -104,10 +104,21 @@ html, body {
   background: #fff;
 }
 
+.club-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .club-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
+}
+
+.club-actions {
+  margin-top: 2px;
 }
 
 .club-logo {
@@ -115,7 +126,7 @@ html, body {
   max-height: 120px;
   object-fit: contain;
 }
-
+  
 /* ================= TABLA JUGADORES ================= */
 .table-wrapper {
   overflow-x: auto;
@@ -469,11 +480,15 @@ if (typeof window.getDB !== "function") {
     card.className = "club-card";
     card.innerHTML = `
       <h3>${club.nombre}</h3>
-      <div class="club-content">
-        ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" class="club-logo">` : ""}
-        <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
+      <div class="club-top-row">
+        <div class="club-content">
+          ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" class="club-logo">` : ""}
+          <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
+        </div>
+        <div class="club-actions">
+          <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
+        </div>
       </div>
-      <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
       <div id="club-${i}" class="club-details">
         <ul>
           ${["Primera","Segunda","Tercera"].map(cat => `
@@ -530,6 +545,7 @@ if (typeof window.getDB !== "function") {
 });
 
 </script>
+
 
 
 
