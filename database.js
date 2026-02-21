@@ -16,7 +16,8 @@ async function getDB() {
     jugadores: [],
     torneosFederados: [],
     torneosInternos: [],
-    torneoFederadoInscriptos: []
+    torneoFederadoInscriptos: [],
+    torneosNuevos: []
   };
 
   const { data: clubes } =
@@ -38,9 +39,21 @@ async function getDB() {
       .from("torneo_federado_inscriptos")
       .select("id, torneo_id, club_id, jugador_id");
 
+  const {
+    data: torneosNuevos,
+    error: torneosNuevosError
+  } = await supabaseClient
+    .from("torneos_nuevos")
+    .select("*");
+
+  if (torneosNuevosError) {
+    console.warn("No se pudo leer torneos_nuevos:", torneosNuevosError.message);
+  }
+
   db.clubes = clubes || [];
   db.jugadores = jugadores || [];
   db.torneoFederadoInscriptos = torneosFedInscriptos || [];
+  db.torneosNuevos = torneosNuevos || [];
 
   db.torneosFederados = (torneosFed || []).map(torneo => {
     const inscriptos = {};
@@ -190,17 +203,18 @@ async function saveDB(db) {
 
 /* =================== CLUBES =================== */
 
-async function crearClub(nombre, ubicacion) {
+async function crearClub(nombre, ubicacion, logo_url = null) {
   return await supabaseClient.from("clubes").insert({
     nombre,
-    ubicacion
+    ubicacion,
+    logo_url
   });
 }
 
-async function actualizarClub(id, nombre, ubicacion) {
+async function actualizarClub(id, nombre, ubicacion, logo_url = null) {
   return await supabaseClient
     .from("clubes")
-    .update({ nombre, ubicacion })
+    .update({ nombre, ubicacion, logo_url })
     .eq("id", id);
 }
 
@@ -266,6 +280,45 @@ async function eliminarTorneoInternoDB(id) {
     .eq("id", id);
 }
 
+async function subirLogoClub(file, options = {}) {
+  const bucket = options.bucket || "clubes-logos";
+
+  if (!file) {
+    return { data: null, error: new Error("Archivo inválido") };
+  }
+
+  const extension = (file.name.split(".").pop() || "png").toLowerCase();
+  const safeName = (file.name || "logo")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .toLowerCase();
+
+  const filename = `${Date.now()}-${safeName || `logo.${extension}`}`;
+
+  const { data, error } = await supabaseClient
+    .storage
+    .from(bucket)
+    .upload(filename, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || `image/${extension}`
+    });
+
+  if (error) return { data: null, error };
+
+  const { data: publicData } = supabaseClient
+    .storage
+    .from(bucket)
+    .getPublicUrl(data.path);
+
+  return {
+    data: {
+      ...data,
+      publicUrl: publicData?.publicUrl || null
+    },
+    error: null
+  };
+}
+
 /* =================== Exponer global =================== */
 
 window.getDB = getDB;
@@ -285,3 +338,5 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
+
+window.subirLogoClub = subirLogoClub;
