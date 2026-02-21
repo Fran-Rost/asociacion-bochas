@@ -79,6 +79,10 @@ th{
 
 .sortable-header{cursor:pointer;}
 .sortable-header.active-sort{background:#0b4f6c;}
+.sortable-header span[aria-hidden="true"]{opacity:.25;}
+.sortable-header.active-sort span[aria-hidden="true"]{opacity:1;}
+.sort-active-indicator{margin:10px 0 14px;font-size:14px;color:#333;}
+.sort-active-indicator strong{color:#8b0000;}
 .club-logo-preview{
   max-width:120px;
   max-height:120px;
@@ -189,17 +193,17 @@ Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
   <table id="tablaJugadores">
     <thead>
       <tr>
-        <th class="sortable-header" data-field="nombre" onclick="toggleSortCriterion('nombre')">Nombre</th>
-        <th class="sortable-header" data-field="club_id" onclick="toggleSortCriterion('club_id')">Club</th>
-        <th class="sortable-header" data-field="categoria" onclick="toggleSortCriterion('categoria')">Categoría</th>
-        <th class="sortable-header" data-field="torneos" onclick="toggleSortCriterion('torneos')">Jugados</th>
+        <th class="sortable-header" data-field="nombre" onclick="toggleSortCriterion('nombre')">Nombre <span aria-hidden="true">●</span></th>
+        <th class="sortable-header" data-field="club_id" onclick="toggleSortCriterion('club_id')">Club <span aria-hidden="true">●</span></th>
+        <th class="sortable-header" data-field="categoria" onclick="toggleSortCriterion('categoria')">Categoría <span aria-hidden="true">●</span></th>
+        <th class="sortable-header" data-field="torneos" onclick="toggleSortCriterion('torneos')">Jugados <span aria-hidden="true">●</span></th>
         <th>1° Partido</th>
         <th>2° Partido</th>
         <th>3° Partido</th>
         <th>4° Partido</th>
         <th>5° Partido</th>
         <th>Semifinal</th>
-        <th>Subcampeón</th>
+        <th>Final</th>
         <th>Campeón</th>
         <th>Eliminar</th>
       </tr>
@@ -207,7 +211,7 @@ Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
     <tbody id="tablaJugadoresBody"></tbody>
   </table>
 </div>
-
+<p id="sortActiveIndicator" class="sort-active-indicator">Orden activo: ninguno</p>
 
   <button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
   <hr>
@@ -580,6 +584,21 @@ function updateSortHeaders(){
   });
 }
 
+function updateSortIndicator(){
+  const el = document.getElementById("sortActiveIndicator");
+  if (!el) return;
+
+  const labels = { nombre: "Nombre", club_id: "Club", categoria: "Categoría", torneos: "Jugados" };
+  const activos = sortFieldOrder.filter(field => sortCriteria.some(c => c.field === field));
+
+  if (!activos.length) {
+    el.innerHTML = "Orden activo: <strong>ninguno</strong>";
+    return;
+  }
+
+  el.innerHTML = `Orden activo: <strong>${activos.map(f => labels[f]).join(" + ")}</strong>`;
+}
+
 function toggleSortCriterion(field){
   const existingIndex = sortCriteria.findIndex(c => c.field === field);
   if (existingIndex >= 0) {
@@ -670,6 +689,7 @@ function cargarJugadores(){
   });
 
   updateSortHeaders();
+  updateSortIndicator();
 }
 
 async function eliminarJugador(id){
@@ -833,4 +853,3 @@ async function agregarJugador(){
 
 </body>
 </html>
-
