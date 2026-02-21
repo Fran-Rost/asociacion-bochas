@@ -566,35 +566,37 @@ async function crearTorneoFederado(){
   document.querySelectorAll("#torneoClubes .club").forEach(c => {
     const n = c.querySelector("strong")?.innerText;
     const j = [];
-    c.querySelectorAll(".jugador").forEach(x => x.checked && j.push(x.value));
-    if (n) ins[n] = j;
-  });
-
-  db.torneosFederados.push({
-    id: Date.now(),
-    fecha: fedFecha.value,
-    observacion: fedObs.value,
-    inscriptos: ins
-  });
-
-  await saveDB(db);
-  db = await getDB();
-  cargarFederados();
-  cargarClubesTorneo();
+   async function crearTorneoFederado(){␊
+  const ins = {};␊
+  document.querySelectorAll("#torneoClubes .club").forEach(c => {␊
+    const n = c.querySelector("strong")?.innerText;
 
   fedFecha.value = "";
   fedObs.value = "";
 }
 
-  async function crearTorneoInterno(){
-  db.torneosInternos.push({
-    organizador_id: intOrg.value ? parseInt(intOrg.value) : null,
-    nombre: intNombre.value,
-    fecha: intFecha.value,
-    descripcion: intDesc.value
-  });
+fedObs.value = "";
+}
 
-  await saveDB(db);
+  async function crearTorneoInterno(){
+  const nombre = intNombre.value?.trim();
+  const fecha = intFecha.value?.trim();
+  const descripcion = intDesc.value?.trim() || null;
+  const organizador_id = intOrg.value ? parseInt(intOrg.value) : null;
+
+  if (!nombre || !fecha) {
+    alert("Completá nombre y fecha del torneo interno.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("torneos_internos")
+    .insert({ organizador_id, nombre, fecha, descripcion });
+
+  if (error) {
+    alert(`No se pudo crear el torneo interno: ${error.message}`);
+    return;
+  }
 
   db = await getDB();
   cargarInternos();
@@ -938,3 +940,4 @@ async function agregarJugador(){
 
 </body>
 </html>
+
