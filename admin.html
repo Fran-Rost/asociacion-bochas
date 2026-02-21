@@ -54,9 +54,7 @@ th{
 }
 /* VISOR DE TABLA */
 .table-visor {
-  max-height: 400px;       /* Altura máxima del visor */
   overflow-x: auto;        /* Scroll horizontal si es necesario */
-  overflow-y: auto;        /* Scroll vertical */
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 6px;
@@ -77,6 +75,24 @@ th{
   position: sticky;  /* Cabecera fija al hacer scroll */
   top: 0;
   z-index: 2;
+}
+
+.sortable-header{cursor:pointer;}
+.sortable-header.active-sort{background:#0b4f6c;}
+.sort-priority{
+  font-size:12px;
+  margin-left:4px;
+  background:#fff;
+  color:#8b0000;
+  border-radius:10px;
+  padding:1px 6px;
+}
+.club-logo-preview{
+  max-width:120px;
+  max-height:120px;
+  object-fit:contain;
+  border:1px solid #ccc;
+  margin-top:8px;
 }
 
 input,select{padding:5px;}
@@ -161,7 +177,9 @@ Descripción: <input id="intDesc"><br><br>
 
 <h3>Agregar club</h3>
 Nombre: <input id="nuevoClubNombre">
-Ubicación: <input id="nuevoClubUbicacion">
+Ubicación: <input id="nuevoClubUbicacion"><br><br>
+Logo (archivo): <input id="nuevoClubLogoFile" type="file" accept="image/*"><br><br>
+Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
 <button class="save" onclick="agregarClub()">Agregar club</button>
 
 <br><br>
@@ -179,17 +197,17 @@ Ubicación: <input id="nuevoClubUbicacion">
   <table id="tablaJugadores">
     <thead>
       <tr>
-        <th>Nombre</th>
-        <th>Club</th>
-        <th>Categoría</th>
-        <th>Jugados</th>
-        <th>1° Ronda</th>
-        <th>Zona</th>
-        <th>16avos</th>
-        <th>Octavos</th>
-        <th>Cuartos</th>
+        <th class="sortable-header" data-field="nombre" onclick="toggleSortCriterion('nombre')">Nombre</th>
+        <th class="sortable-header" data-field="club_id" onclick="toggleSortCriterion('club_id')">Club</th>
+        <th class="sortable-header" data-field="categoria" onclick="toggleSortCriterion('categoria')">Categoría</th>
+        <th class="sortable-header" data-field="torneos" onclick="toggleSortCriterion('torneos')">Jugados</th>
+        <th>1° Partido</th>
+        <th>2° Partido</th>
+        <th>3° Partido</th>
+        <th>4° Partido</th>
+        <th>5° Partido</th>
         <th>Semifinal</th>
-        <th>Subcampeón</th>
+        <th>Final</th>
         <th>Campeón</th>
         <th>Eliminar</th>
       </tr>
@@ -221,6 +239,7 @@ Ubicación: <input id="nuevoClubUbicacion">
 
 <script>
 let db;
+let sortCriteria = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   db = await getDB();
@@ -332,7 +351,7 @@ function toggleJugador(ti, club, jugador, checked){
 
 async function eliminarTorneoFederado(index){
   if(!confirm("¿Eliminar este torneo federado?")) return;
-  
+
  const torneo = db.torneosFederados[index];
   const torneoId = Number(torneo?.id);
 
@@ -360,7 +379,7 @@ async function eliminarTorneoFederado(index){
      alert(`No se pudo eliminar el torneo federado: ${deleteTorneoError.message}${getPrimaryKeyHelpMessage(deleteTorneoError.message)}`);
     return;
   }
-  
+
   db = await getDB();
   cargarFederados();
 }
@@ -377,14 +396,14 @@ function toggle(id){
   }
   return "";
 }
-  
+
 /* ================= TORNEOS INTERNOS ================= */
 
 function cargarInternos(){
   if(!db || !db.torneosInternos){
   return;
 }
-  
+
   const cont = document.getElementById("listaInternos");
   cont.innerHTML = "";
 
@@ -471,13 +490,43 @@ async function crearTorneoFederado(){
     c.querySelectorAll(".jugador").forEach(x=>x.checked&&j.push(x.value));
     ins[n]=j;
   });
-  db.torneosFederados.push({
-    id:Date.now(),
-    fecha:fedFecha.value,
-    observacion:fedObs.value,
-    inscriptos:ins
+
+  const { data, error } = await supabaseClient
+    .from("torneos_federados")
+    .insert({
+      fecha: fedFecha.value,
+      observacion: fedObs.value
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    alert(`No se pudo crear el torneo federado: ${error.message}`);
+    return;
+  }
+
+  const rowsInscriptos = [];
+  Object.entries(ins).forEach(([clubNombre, jugadoresNombres]) => {
+    const club = db.clubes.find(c => c.nombre === clubNombre);
+    if (!club) return;
+
+    jugadoresNombres.forEach(jugadorNombre => {
+      const jugador = db.jugadores.find(j => j.nombre === jugadorNombre && j.club_id === club.id);
+      if (!jugador) return;
+      rowsInscriptos.push({ torneo_id: data.id, club_id: club.id, jugador_id: jugador.id });
+    });
   });
-  await saveDB(db);
+
+  if (rowsInscriptos.length > 0) {
+    const { error: insError } = await supabaseClient
+      .from("torneo_federado_inscriptos")
+      .upsert(rowsInscriptos, { onConflict: "torneo_id,club_id,jugador_id", ignoreDuplicates: true });
+
+    if (insError) {
+      alert(`El torneo se creó, pero falló la carga de inscriptos: ${insError.message}`);
+    }
+  }
+
   db = await getDB();
   cargarFederados();
   cargarClubesTorneo();
@@ -510,11 +559,14 @@ function cargarClubesAdmin(){
 
   if(!db || !db.clubes) return;
 
-  db.clubes.forEach((c,i)=>{
+  db.clubes.forEach((c)=>{
     adminClubes.innerHTML+=`
       <div class="club">
-        Nombre: <input value="${c.nombre}" class="c-nombre"><br>
-        Ubicación: <input value="${c.ubicacion}" class="c-ubicacion"><br><br>
+        Nombre: <input value="${c.nombre || ""}" class="c-nombre" data-id="${c.id}"><br>
+        Ubicación: <input value="${c.ubicacion || ""}" class="c-ubicacion" data-id="${c.id}"><br>
+        Logo (archivo): <input type="file" accept="image/*" class="c-logo-file" data-id="${c.id}"><br>
+        Logo URL: <input value="${c.logo_url || ""}" class="c-logo-url" data-id="${c.id}" placeholder="https://..."><br>
+        ${c.logo_url ? `<img src="${c.logo_url}" alt="Logo ${c.nombre}" class="club-logo-preview" data-id="${c.id}">` : `<img src="" alt="Sin logo" class="club-logo-preview" data-id="${c.id}" style="display:none;">`}<br>
 
         <button class="save"
           style="background:#a00"
@@ -527,11 +579,69 @@ function cargarClubesAdmin(){
 
 /* ================= JUGADORES ================= */
 const tabla=document.getElementById("tablaJugadores");
+const categoryOrder = { Primera: 3, Segunda: 2, Tercera: 1 };
+
+function updateSortHeaders(){
+  document.querySelectorAll(".sortable-header").forEach(th => {
+    th.classList.remove("active-sort");
+    th.querySelectorAll(".sort-priority").forEach(el => el.remove());
+
+    const index = sortCriteria.findIndex(c => c.field === th.dataset.field);
+    if (index >= 0) {
+      th.classList.add("active-sort");
+      th.insertAdjacentHTML("beforeend", `<span class="sort-priority">${index + 1}</span>`);
+    }
+  });
+}
+
+function toggleSortCriterion(field){
+  const existingIndex = sortCriteria.findIndex(c => c.field === field);
+  if (existingIndex >= 0) {
+    sortCriteria.splice(existingIndex, 1);
+  } else {
+    const defaultDirection = field === "categoria" || field === "torneos" ? "desc" : "asc";
+    sortCriteria.push({ field, direction: defaultDirection });
+  }
+
+  cargarJugadores();
+}
+
+function getSortValue(jugador, field){
+  if (field === "club_id") {
+    const club = db.clubes.find(c => c.id === jugador.club_id);
+    return club?.nombre || "";
+  }
+  if (field === "categoria") {
+    return categoryOrder[jugador.categoria] || 0;
+  }
+  if (field === "torneos") {
+    return Number(jugador.torneos || 0);
+  }
+  return String(jugador[field] || "").toLowerCase();
+}
+
+function compareValues(a, b, direction){
+  if (a < b) return direction === "asc" ? -1 : 1;
+  if (a > b) return direction === "asc" ? 1 : -1;
+  return 0;
+}
+
 function cargarJugadores(){
   const tbody = document.getElementById("tablaJugadoresBody");
   tbody.innerHTML = "";
 
-  db.jugadores.forEach((j, ji)=>{
+  const jugadoresOrdenados = [...db.jugadores].sort((a, b) => {
+    for (const criterion of sortCriteria) {
+      const av = getSortValue(a, criterion.field);
+      const bv = getSortValue(b, criterion.field);
+      const result = compareValues(av, bv, criterion.direction);
+      if (result !== 0) return result;
+    }
+    return 0;
+  });
+
+  jugadoresOrdenados.forEach((j)=>{
+    const ji = db.jugadores.findIndex(item => item.id === j.id);
     tbody.innerHTML += `
       <tr>
         <td><input value="${j.nombre || ""}" onchange="db.jugadores[${ji}].nombre=this.value"></td>
@@ -568,6 +678,8 @@ function cargarJugadores(){
       </tr>
     `;
   });
+
+  updateSortHeaders();
 }
 
 async function eliminarJugador(id){
@@ -599,10 +711,58 @@ function cargarSelectClubes(){
   }
 }
 
+async function cargarLogoDesdeArchivo(file){
+  if (!file) return { url: null, error: null };
+
+  const { data, error } = await subirLogoClub(file, { bucket: "clubes-logos" });
+  if (error) return { url: null, error };
+
+  return { url: data?.publicUrl || null, error: null };
+}
+
+function actualizarPreviewLogo(clubId, logoUrl){
+  const img = document.querySelector(`.club-logo-preview[data-id="${clubId}"]`);
+  if (!img) return;
+
+  if (logoUrl) {
+    img.src = logoUrl;
+    img.style.display = "block";
+  } else {
+    img.src = "";
+    img.style.display = "none";
+  }
+}
+
 async function guardarClubes(){
-  document.querySelectorAll(".c-nombre").forEach((n,i)=>db.clubes[i].nombre=n.value);
-  document.querySelectorAll(".c-ubicacion").forEach((u,i)=>db.clubes[i].ubicacion=u.value);
-  await saveDB(db);
+  const nombres = [...document.querySelectorAll(".c-nombre")];
+
+  for (const inputNombre of nombres) {
+    const id = parseInt(inputNombre.dataset.id, 10);
+    const nombre = inputNombre.value;
+    const ubicacion = document.querySelector(`.c-ubicacion[data-id="${id}"]`)?.value || "";
+    const logoInput = document.querySelector(`.c-logo-url[data-id="${id}"]`);
+    const logoFile = document.querySelector(`.c-logo-file[data-id="${id}"]`)?.files?.[0];
+
+    let logo_url = logoInput?.value?.trim() || null;
+
+    if (logoFile) {
+      const { url, error } = await cargarLogoDesdeArchivo(logoFile);
+      if (error) {
+        alert(`No se pudo subir el logo del club ${nombre}: ${error.message}`);
+        continue;
+      }
+      logo_url = url;
+      if (logoInput) logoInput.value = logo_url || "";
+    }
+
+    await actualizarClub(id, nombre, ubicacion, logo_url || null);
+    actualizarPreviewLogo(id, logo_url);
+  }
+
+  db = await getDB();
+  cargarClubesAdmin();
+  cargarClubesTorneo();
+  cargarSelectClubes();
 }
 
 async function eliminarClub(id){
@@ -624,8 +784,34 @@ async function guardarJugadores(){
 }
 
 async function agregarClub(){
-  db.clubes.push({nombre:nuevoClubNombre.value,ubicacion:nuevoClubUbicacion.value});
-  await saveDB(db);
+  let logoUrl = nuevoClubLogoUrl.value?.trim() || null;
+  const logoFile = nuevoClubLogoFile.files?.[0];
+
+  if (logoFile) {
+    const { url, error: uploadError } = await cargarLogoDesdeArchivo(logoFile);
+    if (uploadError) {
+      alert(`No se pudo subir el logo: ${uploadError.message}`);
+      return;
+    }
+    logoUrl = url;
+  }
+
+  const { error } = await crearClub(
+    nuevoClubNombre.value,
+    nuevoClubUbicacion.value,
+    logoUrl
+  );
+
+  if (error) {
+    alert(`No se pudo crear el club: ${error.message}`);
+    return;
+  }
+
+  nuevoClubNombre.value = "";
+  nuevoClubUbicacion.value = "";
+  nuevoClubLogoUrl.value = "";
+  nuevoClubLogoFile.value = "";
+
   db = await getDB();
   cargarClubesAdmin();
   cargarClubesTorneo();
