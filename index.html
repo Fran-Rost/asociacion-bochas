@@ -372,14 +372,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ================= Torneos (torneos_nuevos) ================= */
   const fed = document.getElementById("torneosFederados");
   fed.innerHTML = "";
-  (db.torneosNuevos || []).forEach(t => {
-    const div = document.createElement("div");
-    div.className = "club-card";
+  db.torneosFederados?.forEach((t,i)=>{
+    const div=document.createElement("div");
+    div.className="club-card";
 
-    div.innerHTML = `
-      <h3>${t.nombre || t.titulo || `Torneo #${t.id}`}</h3>
-      <p><strong>Fecha:</strong> ${t.fecha || "-"}</p>
-      <p><strong>Descripción:</strong> ${t.descripcion || t.observacion || "-"}</p>
+    const inscriptosData = typeof t.inscriptos === "string"
+      ? (() => { try { return JSON.parse(t.inscriptos); } catch { return {}; } })()
+      : (t.inscriptos || {});
+
+    const inscriptosHtml = Object.entries(inscriptosData)
+      .map(([club, jugadores]) => `
+        <li>
+          <strong>${club}:</strong>
+          ${Array.isArray(jugadores) && jugadores.length ? jugadores.join(", ") : "-"}
+        </li>
+      `)
+      .join("");
+
+    div.innerHTML=`
+      <h3>Torneo Federado #${t.id}</h3>
+      <p><strong>Fecha:</strong> ${t.fecha}</p>
+      <p><strong>Observación:</strong> ${t.observacion}</p>
+      <p><strong>Inscriptos por club:</strong></p>
+      <ul>${inscriptosHtml || "<li>-</li>"}</ul>
     `;
     fed.appendChild(div);
   });
@@ -544,5 +559,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 </script>
+
 
 
