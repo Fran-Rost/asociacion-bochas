@@ -244,12 +244,12 @@ th {
     <section id="torneo" class="box">
       <h2>Torneos</h2>
       <div id="torneoActivo"></div>
+      <h3>Próximos partidos</h3>
+      <div id="torneoProximosPartidos"></div>
       <hr style="margin:20px 0;">
       <h3>Torneos Internos</h3>
       <div id="torneosInternos"></div>
     </section>
-  </div>
-</section>
 
 <!-- ================= CLUBES ================= -->
 <section id="clubes" class="section">
@@ -294,8 +294,8 @@ function showSection(id){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 
-  if(id === "jugadores"){
-    cargarJugadores();
+  if(id === "jugadores" && typeof window.cargarJugadores === "function"){
+    window.cargarJugadores();
   }
 }
 
@@ -457,14 +457,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    torneoProximosEl.innerHTML = proximos.length
-      ? `<ul>${proximos.join("")}</ul>`
-      : "<p>Sin próximos partidos cargados todavía.</p>";
+     if (torneoProximosEl) {
+      torneoProximosEl.innerHTML = proximos.length
+        ? `<ul>${proximos.join("")}</ul>`
+        : "<p>Sin próximos partidos cargados todavía.</p>";
+    }
   } else {
     torneoActivoEl.innerHTML = "<p>No hay torneos activos.</p>";
-    torneoProximosEl.innerHTML = "<p>No hay próximos partidos cargados.</p>";
+    if (torneoProximosEl) {
+      torneoProximosEl.innerHTML = "<p>No hay próximos partidos cargados.</p>";
+    }
   }
-
   /* ================= CLUBES =================== */
 
   const jugadoresPorClub = {};
@@ -559,6 +562,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 </script>
+
 
 
 
