@@ -124,6 +124,23 @@ hr{margin:25px 0;}
 <!-- ================= INICIO ================= -->
 <section id="inicio" class="section active">
 
+<!-- ===== TORNEOS FEDERADOS ===== -->
+<div class="box">
+<h2>Torneos Federados</h2>
+
+<div id="listaFederados"></div>
+
+<hr>
+
+<h3>Crear torneo federado</h3>
+Fecha: <input id="fedFecha"><br><br>
+Observación: <input id="fedObs"><br><br>
+
+<div id="torneoClubes"></div>
+
+<button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
+</div>
+
 <!-- ===== TORNEOS (torneos_nuevos) ===== -->
 <div class="box">
 <h2>Torneos</h2>
@@ -739,3 +756,4 @@ async function agregarJugador(){
 
 </body>
 </html>
+
