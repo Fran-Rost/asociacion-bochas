@@ -7,8 +7,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="database.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="/database.js"></script>
 <link rel="stylesheet" href="styles.css">
 
 <style>
@@ -256,8 +256,13 @@ let sortCriteria = [];
 const sortFieldOrder = ["nombre", "club_id", "categoria", "torneos"];
 
 document.addEventListener("DOMContentLoaded", async () => {
-  db = await getDB();
+if (typeof window.getDB !== "function") {
+    console.error("No se cargo database.js o fallo su inicializacion.");
+    return;
+  }
 
+  db = await window.getDB();
+  
   cargarFederados();
   cargarTorneosNuevos();
   cargarInternos();
@@ -926,3 +931,4 @@ async function agregarJugador(){
 
 </body>
 </html>
+
