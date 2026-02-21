@@ -136,6 +136,8 @@ hr{margin:25px 0;}
 Fecha: <input id="fedFecha"><br><br>
 Observación: <input id="fedObs"><br><br>
 
+<div id="torneoClubes"></div>
+
 <button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
 </div>
 
@@ -267,6 +269,7 @@ if (typeof window.getDB !== "function") {
   cargarJugadores();
   cargarClubesAdmin();
   cargarSelectClubes();
+  cargarClubesTorneo();
 });
 
 /* -------- Navegación -------- */
@@ -559,55 +562,69 @@ async function eliminarTorneoInterno(index){
 }
 
 async function crearTorneoFederado(){
-  const fechaInput = document.getElementById("fedFecha");
-  const obsInput = document.getElementById("fedObs");
+  const ins = {};
+  document.querySelectorAll("#torneoClubes .club").forEach(c => {
+    const n = c.querySelector("strong")?.innerText;
+    const j = [];
+    c.querySelectorAll(".jugador").forEach(x => x.checked && j.push(x.value));
+    if (n) ins[n] = j;
+  });
 
-  const fecha = fechaInput?.value?.trim();
-  const observacion = obsInput?.value?.trim() || "";
+  db.torneosFederados.push({
+    id: Date.now(),
+    fecha: fedFecha.value,
+    observacion: fedObs.value,
+    inscriptos: ins
+  });
 
-  if (!fecha) {
-    alert("Ingresá una fecha para el torneo federado.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("torneos_federados")
-    .insert({ fecha, observacion });
-
-  if (error) {
-    alert(`No se pudo crear el torneo federado: ${error.message}`);
-    return;
-  }
-
-  fechaInput.value = "";
-  obsInput.value = "";
-
+  await saveDB(db);
   db = await getDB();
   cargarFederados();
+  cargarClubesTorneo();
+
+  fedFecha.value = "";
+  fedObs.value = "";
 }
 
   async function crearTorneoInterno(){
-  const { error } = await supabaseClient
-    .from("torneos_internos")
-    .insert({
-      organizador_id: intOrg.value ? parseInt(intOrg.value) : null,
-      nombre: intNombre.value,
-      fecha: intFecha.value,
-      descripcion: intDesc.value
-    });
+  db.torneosInternos.push({
+    organizador_id: intOrg.value ? parseInt(intOrg.value) : null,
+    nombre: intNombre.value,
+    fecha: intFecha.value,
+    descripcion: intDesc.value
+  });
 
-  if (error) {
-    alert(`No se pudo crear el torneo interno: ${error.message}`);
-    return;
-  }
+  await saveDB(db);
+
+  db = await getDB();
+  cargarInternos();
 
   intOrg.value = "";
   intNombre.value = "";
   intFecha.value = "";
   intDesc.value = "";
+}
 
-  db = await getDB();
-  cargarInternos();
+function cargarClubesTorneo(){
+  const cont = document.getElementById("torneoClubes");
+  if(!cont || !db) return;
+
+  cont.innerHTML = db.clubes.map(club => {
+    const jugadores = db.jugadores.filter(j => j.club_id === club.id);
+
+    return `
+      <div class="club" style="padding:10px;margin-top:10px;">
+        <strong>${club.nombre}</strong><br>
+        ${jugadores.length
+          ? jugadores.map(j => `
+              <label style="display:block;margin-top:4px;">
+                <input type="checkbox" class="jugador" value="${j.nombre}"> ${j.nombre}
+              </label>
+            `).join("")
+          : "<em>Sin jugadores cargados</em>"}
+      </div>
+    `;
+  }).join("");
 }
 
 /* ================= CLUBES ================= */
@@ -834,6 +851,7 @@ async function guardarClubes(){
   db = await getDB();
   cargarClubesAdmin();
   cargarSelectClubes();
+  cargarClubesTorneo();
 }
 
 async function eliminarClub(id){
@@ -845,6 +863,7 @@ async function eliminarClub(id){
   db = await getDB();
   cargarClubesAdmin();
   cargarJugadores();
+  cargarClubesTorneo();
 }
 
 
@@ -852,6 +871,7 @@ async function guardarJugadores(){
   await saveDB(db);
   db = await getDB();
   cargarJugadores();
+  cargarClubesTorneo();
 }
 
 async function agregarClub(){
@@ -886,6 +906,7 @@ async function agregarClub(){
   db = await getDB();
   cargarClubesAdmin();
   cargarSelectClubes();
+  cargarClubesTorneo();
 }
 
 async function agregarJugador(){
@@ -910,10 +931,10 @@ async function agregarJugador(){
 
   db = await getDB();
   cargarJugadores();
+  cargarClubesTorneo();
 }
 
 </script>
 
 </body>
 </html>
-
