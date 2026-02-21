@@ -140,7 +140,7 @@ Observación: <input id="fedObs"><br><br>
 
 <button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
 </div>
-  
+
 <!-- ===== TORNEOS (torneos_nuevos) ===== -->
 <div class="box">
 <h2>Torneos</h2>
@@ -259,6 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   db = await getDB();
 
   cargarFederados();
+  cargarTorneosNuevos();
   cargarInternos();
   cargarJugadores();
   cargarClubesAdmin();
@@ -480,6 +481,34 @@ function toggle(id){
   return "";
 }
 
+
+async function crearTorneoNuevo(){
+  const nombre = torneoNuevoNombre.value?.trim();
+  const fecha = torneoNuevoFecha.value?.trim();
+  const descripcion = torneoNuevoDesc.value?.trim();
+
+  if (!nombre || !fecha) {
+    alert("Completá nombre y fecha del torneo.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("torneos_nuevos")
+    .insert({ nombre, fecha, descripcion });
+
+  if (error) {
+    alert(`No se pudo crear el torneo: ${error.message}`);
+    return;
+  }
+
+  torneoNuevoNombre.value = "";
+  torneoNuevoFecha.value = "";
+  torneoNuevoDesc.value = "";
+
+  db = await getDB();
+  cargarTorneosNuevos();
+}
+
 /* ================= TORNEOS INTERNOS ================= */
 
 function cargarInternos(){
@@ -540,20 +569,26 @@ async function eliminarTorneoInterno(index){
 }
 
 async function crearTorneoFederado(){
-  const { error } = await supabaseClient
-    .from("torneos_nuevos")
-    .insert({
-      nombre: fedNombre.value,
-      fecha: fedFecha.value,
-      descripcion: fedObs.value
-    });
+  const fecha = fedFecha.value?.trim();
+  const observacion = fedObs.value?.trim();
 
-  if (error) {
-    alert(`No se pudo crear el torneo: ${error.message}`);
+  if (!fecha) {
+    alert("Ingresá una fecha para el torneo federado.");
     return;
   }
 
-  fedNombre.value = "";
+  const { error } = await supabaseClient
+    .from("torneos_federados")
+    .insert({
+      fecha,
+      observacion
+    });
+
+  if (error) {
+    alert(`No se pudo crear el torneo federado: ${error.message}`);
+    return;
+  }
+
   fedFecha.value = "";
   fedObs.value = "";
 
@@ -575,6 +610,11 @@ async function crearTorneoFederado(){
     alert(`No se pudo crear el torneo interno: ${error.message}`);
     return;
   }
+
+  intOrg.value = "";
+  intNombre.value = "";
+  intFecha.value = "";
+  intDesc.value = "";
 
   db = await getDB();
   cargarInternos();
@@ -875,6 +915,9 @@ async function agregarJugador(){
     campeon: 0
   });
 
+  nuevoJugadorNombre.value = "";
+  nuevoJugadorCategoria.value = "Primera";
+
   db = await getDB();
   cargarJugadores();
 }
@@ -883,4 +926,3 @@ async function agregarJugador(){
 
 </body>
 </html>
-
