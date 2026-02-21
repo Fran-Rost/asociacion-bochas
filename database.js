@@ -145,8 +145,7 @@ async function saveDB(db) {
   const torneosNuevos = await syncTable(
     "torneos_nuevos",
     db.torneosNuevos || []
-  );
-  
+  );␊
   const rowsInscriptos = [];
   const uniqueInscriptos = new Set();
 
@@ -201,7 +200,7 @@ async function saveDB(db) {
     jugadores,
     torneosFederados,
     torneosInternos,
-    torneoNuevos,
+    torneosNuevos
     torneoFederadoInscriptos: rowsInscriptos
   };
 }
@@ -311,7 +310,7 @@ async function subirLogoClub(file, options = {}) {
   if (error) return { data: null, error };
 
   const { data: publicData } = supabaseClient
-    .storage
+    .storage␊
     .from(bucket)
     .getPublicUrl(data.path);
 
@@ -328,20 +327,15 @@ async function subirLogoClub(file, options = {}) {
 
 window.getDB = getDB;
 window.saveDB = saveDB;
-
 window.crearClub = crearClub;
 window.actualizarClub = actualizarClub;
 window.eliminarClubDB = eliminarClubDB;
-
 window.crearJugador = crearJugador;
 window.actualizarJugador = actualizarJugador;
 window.eliminarJugadorDB = eliminarJugadorDB;
-
 window.crearTorneoFederado = crearTorneoFederado;
 window.actualizarTorneoFederado = actualizarTorneoFederado;
 window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
-
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
-
 window.subirLogoClub = subirLogoClub;
