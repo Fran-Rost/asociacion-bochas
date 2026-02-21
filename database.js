@@ -142,6 +142,10 @@ async function saveDB(db) {
     db.torneosInternos || [],
     { stripFields: ["clubes"] }
   );
+  const torneosNuevos = await syncTable(
+    "torneos_nuevos",
+    db.torneosNuevos || []
+  );
 
   const rowsInscriptos = [];
   const uniqueInscriptos = new Set();
@@ -197,6 +201,7 @@ async function saveDB(db) {
     jugadores,
     torneosFederados,
     torneosInternos,
+    torneosNuevos,
     torneoFederadoInscriptos: rowsInscriptos
   };
 }
