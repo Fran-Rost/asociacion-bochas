@@ -285,7 +285,7 @@ async function eliminarTorneoInternoDB(id) {
 }
 
 async function subirLogoClub(file, options = {}) {
-  const bucket = options.bucket || "clubes-logos";␊
+  const bucket = options.bucket || "clubes-logos";
 
   if (!file) {
     return { data: null, error: new Error("Archivo invalido") }
@@ -339,4 +339,5 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
 window.subirLogoClub = subirLogoClub;
+
 
