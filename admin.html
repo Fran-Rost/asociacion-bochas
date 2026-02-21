@@ -559,20 +559,28 @@ async function eliminarTorneoInterno(index){
 }
 
 async function crearTorneoFederado(){
+  const fechaInput = document.getElementById("fedFecha");
+  const obsInput = document.getElementById("fedObs");
+
+  const fecha = fechaInput?.value?.trim();
+  const observacion = obsInput?.value?.trim() || "";
+
+  if (!fecha) {
+    alert("Ingresá una fecha para el torneo federado.");
+    return;
+  }
+
   const { error } = await supabaseClient
     .from("torneos_federados")
-    .insert({
-      fecha: fedFecha.value,
-      observacion: fedObs.value
-    });
+    .insert({ fecha, observacion });
 
   if (error) {
     alert(`No se pudo crear el torneo federado: ${error.message}`);
     return;
   }
 
-  fedFecha.value = "";
-  fedObs.value = "";
+  fechaInput.value = "";
+  obsInput.value = "";
 
   db = await getDB();
   cargarFederados();
