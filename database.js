@@ -288,7 +288,7 @@ async function subirLogoClub(file, options = {}) {␊
   const bucket = options.bucket || "clubes-logos";␊
 ␊
   if (!file) {␊
-    return { data: null, error: new Error("Archivo inválido") };␊
+    return { data: null, error: new Error("Archivo invalido") };
   }␊
 ␊
   const extension = (file.name.split(".").pop() || "png").toLowerCase();␊
