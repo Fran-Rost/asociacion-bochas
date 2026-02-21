@@ -104,21 +104,22 @@ html, body {
   background: #fff;
 }
 
-.club-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-
 .club-content {
   display: flex;
   align-items: flex-start;
   gap: 16px;
 }
 
-.club-actions {
-  margin-top: 2px;
+.club-info-box {
+  border: 1px solid #d5d5d5;
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 220px;
 }
 
 .club-logo {
@@ -480,12 +481,10 @@ if (typeof window.getDB !== "function") {
     card.className = "club-card";
     card.innerHTML = `
       <h3>${club.nombre}</h3>
-      <div class="club-top-row">
-        <div class="club-content">
-          ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" class="club-logo">` : ""}
+      <div class="club-content">
+        ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" class="club-logo">` : ""}
+        <div class="club-info-box">
           <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
-        </div>
-        <div class="club-actions">
           <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
         </div>
       </div>
@@ -545,6 +544,7 @@ if (typeof window.getDB !== "function") {
 });
 
 </script>
+
 
 
 
