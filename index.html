@@ -113,8 +113,6 @@ html, body {
 
 /* ================= TABLA JUGADORES ================= */
 .table-wrapper {
-  max-height: 400px;
-  overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -210,15 +208,21 @@ th {
     <div class="box">
       <h2>Calendario</h2>
       <iframe src="https://calendar.google.com/calendar/embed?ctz=America/Argentina/Cordoba" style="border:0" width="100%" height="400"></iframe>
-    </div>
-
-    <div class="box">
+      <hr style="margin:20px 0;">
       <h2>Torneos Federados</h2>
       <div id="torneosFederados"></div>
-      <hr style="margin:20px 0;">
-      <h2>Torneos Internos</h2>
-      <div id="torneosInternos"></div>
     </div>
+
+    <section id="torneo" class="box">
+      <h2>Torneo</h2>
+      <div id="torneoActivo"></div>
+      <hr style="margin:20px 0;">
+      <h3>Próximos partidos</h3>
+      <div id="torneoProximosPartidos"></div>
+      <hr style="margin:20px 0;">
+      <h3>Torneos Internos</h3>
+      <div id="torneosInternos"></div>
+    </section>
   </div>
 </section>
 
@@ -239,13 +243,13 @@ th {
           <th>Club</th>
           <th>Categoría</th>
           <th>Torneos</th>
-          <th>1° Ronda</th>
-          <th>Zona</th>
-          <th>16avos</th>
-          <th>Octavos</th>
-          <th>Cuartos</th>
+          <th>1° Partido</th>
+          <th>2° Partido</th>
+          <th>3° Partido</th>
+          <th>4° Partido</th>
+          <th>5° Partido</th>
           <th>Semifinal</th>
-          <th>Subcampeón</th>
+          <th>Final</th>
           <th>Campeón</th>
         </tr>
       </thead>
@@ -326,6 +330,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     internos.appendChild(div);
   });
 
+  /* ================= Torneo (nuevo bloque dinámico) ================= */
+  const torneoActivoEl = document.getElementById("torneoActivo");
+  const torneoProximosEl = document.getElementById("torneoProximosPartidos");
+
+  const torneosOrdenados = [...(db.torneosFederados || [])]
+    .sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+
+  const torneoActivo = torneosOrdenados[0];
+  if (torneoActivo) {
+    torneoActivoEl.innerHTML = `
+      <p><strong>Activo:</strong> Torneo Federado #${torneoActivo.id}</p>
+      <p><strong>Fecha:</strong> ${torneoActivo.fecha || "-"}</p>
+      <p><strong>Observación:</strong> ${torneoActivo.observacion || "-"}</p>
+    `;
+
+    const proximos = [];
+    const inscriptos = torneoActivo.inscriptos || {};
+    Object.entries(inscriptos).forEach(([club, jugadores]) => {
+      (jugadores || []).forEach(jugador => {
+        proximos.push(`<li>${jugador} (${club})</li>`);
+      });
+    });
+
+    torneoProximosEl.innerHTML = proximos.length
+      ? `<ul>${proximos.join("")}</ul>`
+      : "<p>Sin próximos partidos cargados todavía.</p>";
+  } else {
+    torneoActivoEl.innerHTML = "<p>No hay torneos activos.</p>";
+    torneoProximosEl.innerHTML = "<p>No hay próximos partidos cargados.</p>";
+  }
+
   /* ================= CLUBES =================== */
 
   const jugadoresPorClub = {};
@@ -346,6 +381,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     card.className = "club-card";
     card.innerHTML = `
       <h3>${club.nombre}</h3>
+      ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" style="max-width:120px;max-height:120px;object-fit:contain;margin:8px 0;">` : ""}
       <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
       <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
       <div id="club-${i}" class="club-details">
@@ -402,4 +438,3 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 </script>
-
