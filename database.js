@@ -146,7 +146,7 @@ async function saveDB(db) {
     "torneos_nuevos",
     db.torneosNuevos || []
   );
-
+  
   const rowsInscriptos = [];
   const uniqueInscriptos = new Set();
 
@@ -201,7 +201,7 @@ async function saveDB(db) {
     jugadores,
     torneosFederados,
     torneosInternos,
-    torneosNuevos,
+    torneoNuevos,
     torneoFederadoInscriptos: rowsInscriptos
   };
 }
