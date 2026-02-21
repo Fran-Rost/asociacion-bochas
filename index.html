@@ -141,6 +141,23 @@ th {
   z-index: 2;
 }
 
+.sortable-header {
+  cursor: pointer;
+}
+
+.sortable-header.active-sort {
+  background: #083a50;
+}
+
+.sort-priority {
+  font-size: 12px;
+  margin-left: 4px;
+  background: #fff;
+  color: #0b4f6c;
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
   .main-header {
@@ -239,10 +256,10 @@ th {
     <table>
       <thead>
         <tr>
-          <th>Jugador</th>
-          <th>Club</th>
-          <th>Categoría</th>
-          <th>Torneos</th>
+          <th class="sortable-header" data-field="nombre" onclick="toggleSortCriterion('nombre')">Nombre</th>
+          <th class="sortable-header" data-field="club_id" onclick="toggleSortCriterion('club_id')">Club</th>
+          <th class="sortable-header" data-field="categoria" onclick="toggleSortCriterion('categoria')">Categoría</th>
+          <th class="sortable-header" data-field="torneos" onclick="toggleSortCriterion('torneos')">Jugados</th>
           <th>1° Partido</th>
           <th>2° Partido</th>
           <th>3° Partido</th>
@@ -259,6 +276,8 @@ th {
 </section>
 
 <script>
+const categoryOrder = { Primera: 3, Segunda: 2, Tercera: 1 };
+let sortCriteria = [];
 
 /* ================= Navegación ================= */
 function showSection(id){
@@ -273,6 +292,53 @@ function showSection(id){
 function toggle(id){
   const e = document.getElementById(id);
   e.style.display = e.style.display === 'block' ? 'none' : 'block';
+}
+
+function updateSortHeaders(){
+  document.querySelectorAll(".sortable-header").forEach(th => {
+    th.classList.remove("active-sort");
+    th.querySelectorAll(".sort-priority").forEach(el => el.remove());
+
+    const index = sortCriteria.findIndex(c => c.field === th.dataset.field);
+    if (index >= 0) {
+      th.classList.add("active-sort");
+      th.insertAdjacentHTML("beforeend", `<span class="sort-priority">${index + 1}</span>`);
+    }
+  });
+}
+
+function toggleSortCriterion(field){
+  const existingIndex = sortCriteria.findIndex(c => c.field === field);
+  if (existingIndex >= 0) {
+    sortCriteria.splice(existingIndex, 1);
+  } else {
+    const defaultDirection = field === "categoria" || field === "torneos" ? "desc" : "asc";
+    sortCriteria.push({ field, direction: defaultDirection });
+  }
+
+  if (typeof window.cargarJugadores === "function") {
+    window.cargarJugadores();
+  }
+}
+
+function getSortValue(jugador, field, db){
+  if (field === "club_id") {
+    const club = db.clubes.find(c => c.id === jugador.club_id);
+    return club?.nombre || "";
+  }
+  if (field === "categoria") {
+    return categoryOrder[jugador.categoria] || 0;
+  }
+  if (field === "torneos") {
+    return Number(jugador.torneos || 0);
+  }
+  return String(jugador[field] || "").toLowerCase();
+}
+
+function compareValues(a, b, direction){
+  if (a < b) return direction === "asc" ? -1 : 1;
+  if (a > b) return direction === "asc" ? 1 : -1;
+  return 0;
 }
 
 /* ================= Cargar datos ================= */
@@ -409,7 +475,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("tablaJugadoresBody");
   tbody.innerHTML = "";
 
-  db.jugadores.forEach(j => {
+  const jugadoresOrdenados = [...db.jugadores].sort((a, b) => {
+    for (const criterion of sortCriteria) {
+      const av = getSortValue(a, criterion.field, db);
+      const bv = getSortValue(b, criterion.field, db);
+      const result = compareValues(av, bv, criterion.direction);
+      if (result !== 0) return result;
+    }
+    return 0;
+  });
+
+  jugadoresOrdenados.forEach(j => {
 
     const club = db.clubes.find(c => c.id === j.club_id);
 
@@ -431,6 +507,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     tbody.appendChild(tr);
   });
+
+  updateSortHeaders();
 };
 
   showSection('inicio');
