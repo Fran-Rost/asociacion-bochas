@@ -104,11 +104,16 @@ html, body {
   background: #fff;
 }
 
-.club-details {
-  display: none;
-  margin-top: 15px;
-  padding: 15px;
-  background: #eef;
+.club-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.club-logo {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
 }
 
 /* ================= TABLA JUGADORES ================= */
@@ -241,11 +246,9 @@ th {
       <div id="torneosFederados"></div>
     </div>
 
-    <section id="torneo" class="box">
+     <section id="torneo" class="box">
       <h2>Torneos</h2>
-      <div id="torneoActivo"></div>
-      <h3>Próximos partidos</h3>
-      <div id="torneoProximosPartidos"></div>
+      <div id="torneosListado"></div>
       <hr style="margin:20px 0;">
       <h3>Torneos Internos</h3>
       <div id="torneosInternos"></div>
@@ -421,8 +424,7 @@ if (typeof window.getDB !== "function") {
   });
 
   /* ================= Torneo (nuevo bloque dinámico) ================= */
-  const torneoActivoEl = document.getElementById("torneoActivo");
-  const torneoProximosEl = document.getElementById("torneoProximosPartidos");
+  const torneosListadoEl = document.getElementById("torneosListado");
 
   const torneosOrdenados = [...(db.torneosNuevos || [])]
     .sort((a, b) => {
@@ -431,49 +433,22 @@ if (typeof window.getDB !== "function") {
       return fechaB.localeCompare(fechaA);
     });
 
-  const torneoActivo = torneosOrdenados[0];
-  if (torneoActivo) {
-    const tituloTorneo = torneoActivo.nombre || torneoActivo.titulo || `Torneo #${torneoActivo.id}`;
-    torneoActivoEl.innerHTML = `
-      <p><strong>Activo:</strong> ${tituloTorneo}</p>
-      <p><strong>Fecha:</strong> ${torneoActivo.fecha || "-"}</p>
-      <p><strong>Observación:</strong> ${torneoActivo.observacion || torneoActivo.descripcion || "-"}</p>
-    `;
-
-    const proximos = [];
-    if (Array.isArray(torneoActivo.proximos_partidos)) {
-      torneoActivo.proximos_partidos.forEach(partido => {
-        if (typeof partido === "string") {
-          proximos.push(`<li>${partido}</li>`);
-          return;
-        }
-
-        const rivalA = partido?.equipo_a || partido?.jugador_a || partido?.local || "";
-        const rivalB = partido?.equipo_b || partido?.jugador_b || partido?.visitante || "";
-        const horario = partido?.hora || partido?.horario || "";
-        const enfrentamiento = [rivalA, rivalB].filter(Boolean).join(" vs ");
-        proximos.push(`<li>${[enfrentamiento, horario].filter(Boolean).join(" - ")}</li>`);
-      });
-    } else {
-      const inscriptos = torneoActivo.inscriptos || {};
-      Object.entries(inscriptos).forEach(([club, jugadores]) => {
-        (jugadores || []).forEach(jugador => {
-          proximos.push(`<li>${jugador} (${club})</li>`);
-        });
-      });
-    }
-
-     if (torneoProximosEl) {
-      torneoProximosEl.innerHTML = proximos.length
-        ? `<ul>${proximos.join("")}</ul>`
-        : "<p>Sin próximos partidos cargados todavía.</p>";
-    }
+  if (torneosOrdenados.length) {
+    torneosListadoEl.innerHTML = "";
+    torneosOrdenados.forEach((torneo) => {
+      const div = document.createElement("div");
+      div.className = "club-card";
+      div.innerHTML = `
+        <h3>${torneo.nombre || torneo.titulo || `Torneo #${torneo.id}`}</h3>
+        <p><strong>Fecha:</strong> ${torneo.fecha || "-"}</p>
+        <p><strong>Observación:</strong> ${torneo.observacion || torneo.descripcion || "-"}</p>
+      `;
+      torneosListadoEl.appendChild(div);
+    });
   } else {
-    torneoActivoEl.innerHTML = "<p>No hay torneos activos.</p>";
-    if (torneoProximosEl) {
-      torneoProximosEl.innerHTML = "<p>No hay próximos partidos cargados.</p>";
-    }
+    torneosListadoEl.innerHTML = "<p>No hay torneos cargados.</p>";
   }
+  
  /* ================= CLUBES =================== */
 
    const jugadoresPorClub = {};
@@ -490,12 +465,14 @@ if (typeof window.getDB !== "function") {
   db.clubes.forEach((club, i) => {
     const jugadores = jugadoresPorClub[club.id] || [];
 
-    const card = document.createElement("div");
+   const card = document.createElement("div");
     card.className = "club-card";
     card.innerHTML = `
       <h3>${club.nombre}</h3>
-      ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" style="max-width:120px;max-height:120px;object-fit:contain;margin:8px 0;">` : ""}
-      <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
+      <div class="club-content">
+        ${club.logo_url ? `<img src="${club.logo_url}" alt="Logo ${club.nombre}" class="club-logo">` : ""}
+        <p><strong>Ubicación:</strong> ${club.ubicacion}</p>
+      </div>
       <button class="simple" onclick="toggle('club-${i}')">Ver club</button>
       <div id="club-${i}" class="club-details">
         <ul>
@@ -553,6 +530,7 @@ if (typeof window.getDB !== "function") {
 });
 
 </script>
+
 
 
 
