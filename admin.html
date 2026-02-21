@@ -124,23 +124,6 @@ hr{margin:25px 0;}
 <!-- ================= INICIO ================= -->
 <section id="inicio" class="section active">
 
-<!-- ===== TORNEOS FEDERADOS ===== -->
-<div class="box">
-<h2>Torneos Federados</h2>
-
-<div id="listaFederados"></div>
-
-<hr>
-
-<h3>Crear torneo federado</h3>
-Fecha: <input id="fedFecha"><br><br>
-Observación: <input id="fedObs"><br><br>
-
-<div id="torneoClubes"></div>
-
-<button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
-</div>
-
 <!-- ===== TORNEOS (torneos_nuevos) ===== -->
 <div class="box">
 <h2>Torneos</h2>
@@ -174,6 +157,7 @@ Descripción: <input id="intDesc"><br><br>
 <button class="save" onclick="crearTorneoInterno()">Crear torneo interno</button>
 </div>
 
+<button class="save" onclick="guardarTorneosNuevos()">Guardar torneos</button>
 <button class="save" onclick="saveDB(db)">Guardar cambios</button>
 
 </section>
@@ -273,46 +257,116 @@ function showSection(id){
 /* ================= TORNEOS ================= */
 
 function cargarFederados(){
-  if(!db || !db.torneosNuevos){
-    return;
-  }
+  if(!db || !db.torneosFederados){
+  return;
+}
 
   const cont = document.getElementById("listaFederados");
   cont.innerHTML = "";
 
-  if(db.torneosNuevos.length === 0){
-    cont.innerHTML = "<p>No hay torneos cargados.</p>";
+  if(db.torneosFederados.length === 0){
+    cont.innerHTML = "<p>No hay torneos federados</p>";
     return;
   }
 
-  db.torneosNuevos.forEach((t, ti) => {
+  db.torneosFederados.forEach((t,ti)=>{
     const div = document.createElement("div");
     div.className = "club";
 
     div.innerHTML = `
-      <strong>${t.nombre || t.titulo || `Torneo #${t.id}`}</strong><br><br>
-
-      Nombre:
-      <input value="${t.nombre || t.titulo || ""}"
-        onchange="db.torneosNuevos[${ti}].nombre=this.value"><br><br>
+      <strong>Torneo #${t.id}</strong><br><br>
 
       Fecha:
-      <input value="${t.fecha || ""}"
-        onchange="db.torneosNuevos[${ti}].fecha=this.value"><br><br>
+      <input value="${t.fecha}"
+        onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
 
-      Descripción:
-      <input value="${t.descripcion || t.observacion || ""}"
-        onchange="db.torneosNuevos[${ti}].descripcion=this.value"><br><br>
+      Observación:
+      <input value="${t.observacion}"
+        onchange="db.torneosFederados[${ti}].observacion=this.value"><br><br>
+
+      <button class="save" onclick="toggle('ins-${ti}')">
+        Editar inscriptos
+      </button>
 
       <button class="save"
-        style="background:#a00"
+        style="background:#a00;margin-left:10px"
         onclick="eliminarTorneoFederado(${ti})">
         Eliminar torneo
       </button>
+
+      <div id="ins-${ti}" style="display:none;margin-top:15px">
+        ${renderInscriptosFederado(t,ti)}
+      </div>
     `;
 
     cont.appendChild(div);
   });
+}
+
+function renderInscriptosFederado(torneo, ti){
+
+  if(!torneo.inscriptos) torneo.inscriptos = {};
+
+  return db.clubes.map(club=>{
+
+    const jugadoresDelClub = db.jugadores
+      ? db.jugadores.filter(j=>j.club_id === club.id)
+      : (club.jugadores || []);
+
+    const ins = torneo.inscriptos?.[club.nombre] || [];
+
+    return `
+      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
+        <strong>${club.nombre}</strong><br>
+        ${jugadoresDelClub.map(j=>`
+          <label>
+            <input type="checkbox"
+              ${ins.includes(j.nombre) ? "checked" : ""}
+              onchange="toggleJugador(${ti}, '${club.nombre}', '${j.nombre}', this.checked)">
+            ${j.nombre}
+          </label><br>
+        `).join("")}
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleJugador(ti, club, jugador, checked){
+  const ins = db.torneosFederados[ti].inscriptos;
+
+  if(!ins[club]) ins[club] = [];
+
+  if(checked){
+    if(!ins[club].includes(jugador)){
+      ins[club].push(jugador);
+    }
+  } else {
+    ins[club] = ins[club].filter(j=>j!==jugador);
+  }
+}
+
+async function eliminarTorneoFederado(index){
+  if(!confirm("¿Eliminar este torneo federado?")) return;
+  db.torneosFederados.splice(index,1);
+  await saveDB(db);
+  db = await getDB();
+  cargarFederados();
+}
+
+function toggle(id){
+  const e=document.getElementById(id);
+  e.style.display = e.style.display==="none"?"block":"none";
+}
+
+async function guardarTorneosNuevos(){
+  try {
+    await saveDB(db);
+    db = await getDB();
+    cargarFederados();
+    alert("Torneos guardados correctamente.");
+  } catch (error) {
+    alert(`No se pudieron guardar los torneos: ${error.message}`);
+  }
 }
 
 async function eliminarTorneoFederado(index){
@@ -756,4 +810,3 @@ async function agregarJugador(){
 
 </body>
 </html>
-
