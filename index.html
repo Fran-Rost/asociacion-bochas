@@ -6,10 +6,10 @@
 <link rel="icon" type="image/png" href="logo-asociacion-removebg-preview.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
 <!-- BASE DE DATOS -->
-<script src="database.js"></script>
+<script defer src="/database.js"></script>
 <link rel="stylesheet" href="styles.css">
 
 <style>
@@ -361,8 +361,12 @@ function compareValues(a, b, direction){
 
 /* ================= Cargar datos ================= */
 document.addEventListener("DOMContentLoaded", async () => {
-
-  const db = await getDB();
+if (typeof window.getDB !== "function") {
+    console.error("No se cargo database.js o fallo su inicializacion.");
+    return;
+  }
+  
+  const db = await window.getDB();
 
   if (!db) {
     console.error("DB no disponible", db);
@@ -548,6 +552,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 </script>
+
 
 
 
