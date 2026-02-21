@@ -149,14 +149,6 @@ th {
   background: #083a50;
 }
 
-.sort-priority {
-  font-size: 12px;
-  margin-left: 4px;
-  background: #fff;
-  color: #0b4f6c;
-  border-radius: 10px;
-  padding: 1px 6px;
-}
 
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
@@ -278,6 +270,7 @@ th {
 <script>
 const categoryOrder = { Primera: 3, Segunda: 2, Tercera: 1 };
 let sortCriteria = [];
+const sortFieldOrder = ["nombre", "club_id", "categoria", "torneos"];
 
 /* ================= Navegación ================= */
 function showSection(id){
@@ -296,14 +289,7 @@ function toggle(id){
 
 function updateSortHeaders(){
   document.querySelectorAll(".sortable-header").forEach(th => {
-    th.classList.remove("active-sort");
-    th.querySelectorAll(".sort-priority").forEach(el => el.remove());
-
-    const index = sortCriteria.findIndex(c => c.field === th.dataset.field);
-    if (index >= 0) {
-      th.classList.add("active-sort");
-      th.insertAdjacentHTML("beforeend", `<span class="sort-priority">${index + 1}</span>`);
-    }
+    th.classList.toggle("active-sort", sortCriteria.some(c => c.field === th.dataset.field));
   });
 }
 
@@ -475,8 +461,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tbody = document.getElementById("tablaJugadoresBody");
   tbody.innerHTML = "";
 
+  const criteriosActivos = sortFieldOrder
+    .map(field => sortCriteria.find(c => c.field === field))
+    .filter(Boolean);
+
   const jugadoresOrdenados = [...db.jugadores].sort((a, b) => {
-    for (const criterion of sortCriteria) {
+    for (const criterion of criteriosActivos) {
       const av = getSortValue(a, criterion.field, db);
       const bv = getSortValue(b, criterion.field, db);
       const result = compareValues(av, bv, criterion.direction);
