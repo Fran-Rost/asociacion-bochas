@@ -634,13 +634,19 @@ async function crearTorneoInterno(){
   const nombre = intNombre.value?.trim();
   const fecha = intFecha.value?.trim();
   const descripcion = intDesc.value?.trim() || "";
-  const organizador_id = intOrg.value
-    ? parseInt(intOrg.value, 10)
-    : null;
 
   if (!nombre || !fecha) {
     alert("Completá nombre y fecha del torneo interno.");
     return;
+  }
+
+  let organizador_id = null;
+
+  if (intOrg.value) {
+    const parsed = Number(intOrg.value);
+    if (!Number.isNaN(parsed)) {
+      organizador_id = parsed;
+    }
   }
 
   const { data, error } = await supabaseClient
@@ -660,6 +666,11 @@ async function crearTorneoInterno(){
     alert(error.message);
     return;
   }
+
+  intOrg.value = "";
+  intNombre.value = "";
+  intFecha.value = "";
+  intDesc.value = "";
 
   db = await getDB();
   cargarInternos();
@@ -998,6 +1009,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
