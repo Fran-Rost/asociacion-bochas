@@ -643,24 +643,23 @@ async function crearTorneoInterno(){
     return;
   }
 
-  const { error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("torneos_internos")
     .insert({
       nombre,
       fecha,
       descripcion,
       organizador_id
-    });
+    })
+    .select();
+
+  console.log("DATA:", data);
+  console.log("ERROR:", error);
 
   if (error) {
-    alert(`No se pudo crear el torneo interno: ${error.message}`);
+    alert(error.message);
     return;
   }
-
-  intNombre.value = "";
-  intFecha.value = "";
-  intDesc.value = "";
-  intOrg.value = "";
 
   db = await getDB();
   cargarInternos();
@@ -999,6 +998,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
