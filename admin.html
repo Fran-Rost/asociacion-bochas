@@ -570,27 +570,65 @@ async function crearTorneoFederado(){
     return;
   }
 
-  const ins = {};
+  /* 1️⃣ Crear torneo */
+  const { data: torneoData, error: torneoError } =
+    await supabaseClient
+      .from("torneos_federados")
+      .insert({ fecha, observacion })
+      .select()
+      .single();
+
+  if (torneoError) {
+    alert("Error al crear torneo: " + torneoError.message);
+    return;
+  }
+
+  const torneoId = torneoData.id;
+
+  /* 2️⃣ Insertar inscriptos */
+  const rowsInscriptos = [];
+
   document.querySelectorAll("#torneoClubes .club").forEach(c => {
-    const n = c.querySelector("strong")?.innerText;
-    const j = [];
-    c.querySelectorAll(".jugador").forEach(x => x.checked && j.push(x.value));
-    if (n) ins[n] = j;
+    const clubNombre = c.querySelector("strong")?.innerText;
+    const club = db.clubes.find(cl => cl.nombre === clubNombre);
+    if (!club) return;
+
+    c.querySelectorAll(".jugador").forEach(x => {
+      if (!x.checked) return;
+
+      const jugador = db.jugadores.find(
+        j => j.nombre === x.value && j.club_id === club.id
+      );
+
+      if (!jugador) return;
+
+      rowsInscriptos.push({
+        torneo_id: torneoId,
+        club_id: club.id,
+        jugador_id: jugador.id
+      });
+    });
   });
 
-  db.torneosFederados.push({ fecha, observacion, inscriptos: ins });
+  if (rowsInscriptos.length > 0) {
+    const { error: insError } =
+      await supabaseClient
+        .from("torneo_federado_inscriptos")
+        .insert(rowsInscriptos);
 
-  try {
-    await saveDB(db);
-    db = await getDB();
-    cargarFederados();
-    cargarClubesTorneo();
-
-    fedFecha.value = "";
-    fedObs.value = "";
-  } catch (error) {
-    alert(`No se pudo crear el torneo federado: ${error.message}`);
+    if (insError) {
+      alert("Error al guardar inscriptos: " + insError.message);
+      return;
+    }
   }
+
+  /* 3️⃣ Recargar vista */
+  fedFecha.value = "";
+  fedObs.value = "";
+
+  db = await getDB();
+  cargarFederados();
+  cargarClubesTorneo();
 }
 
   async function crearTorneoInterno(){
@@ -602,28 +640,32 @@ async function crearTorneoFederado(){
     return;
   }
 
-  db.torneosInternos.push({
-    organizador_id: intOrg.value ? parseInt(intOrg.value, 10) : null,
-    nombre,
-    fecha,
-    descripcion: intDesc.value?.trim() || ""
-  });
+  const { error } =
+    await supabaseClient
+      .from("torneos_internos")
+      .insert({
+        organizador_id: intOrg.value
+          ? parseInt(intOrg.value, 10)
+          : null,
+        nombre,
+        fecha,
+        descripcion: intDesc.value?.trim() || ""
+      });
 
-  try {
-    await saveDB(db);
-
-    db = await getDB();
-    cargarInternos();
-
-    intOrg.value = "";
-    intNombre.value = "";
-    intFecha.value = "";
-    intDesc.value = "";
-  } catch (error) {
-    alert(`No se pudo crear el torneo interno: ${error.message}`);
+  if (error) {
+    alert("Error al crear torneo interno: " + error.message);
+    return;
   }
-}
 
+  intOrg.value = "";
+  intNombre.value = "";
+  intFecha.value = "";
+  intDesc.value = "";
+
+  db = await getDB();
+  cargarInternos();
+}
+  
 function cargarClubesTorneo(){
   const cont = document.getElementById("torneoClubes");
   if(!cont || !db) return;
@@ -957,5 +999,6 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
