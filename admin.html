@@ -570,58 +570,57 @@ async function crearTorneoFederado(){
     return;
   }
 
-  const ins = {};
-  document.querySelectorAll("#torneoClubes .club").forEach(c => {
-    const n = c.querySelector("strong")?.innerText;
-    const j = [];
-    c.querySelectorAll(".jugador").forEach(x => x.checked && j.push(x.value));
-    if (n) ins[n] = j;
-  });
+  const { error } = await supabaseClient
+    .from("torneos_federados")
+    .insert({
+      fecha,
+      observacion
+    });
 
-  db.torneosFederados.push({ fecha, observacion, inscriptos: ins });
-
-  try {
-    await saveDB(db);
-    db = await getDB();
-    cargarFederados();
-    cargarClubesTorneo();
-
-    fedFecha.value = "";
-    fedObs.value = "";
-  } catch (error) {
-    alert(`No se pudo crear el torneo federado: ${error.message}`);
+  if (error) {
+    alert("Error al crear torneo federado: " + error.message);
+    return;
   }
+
+  fedFecha.value = "";
+  fedObs.value = "";
+
+  db = await getDB();
+  cargarFederados();
 }
 
   async function crearTorneoInterno(){
   const nombre = intNombre.value?.trim();
   const fecha = intFecha.value?.trim();
+  const descripcion = intDesc.value?.trim() || "";
+  const organizador_id = intOrg.value ? parseInt(intOrg.value) : null;
 
   if (!nombre || !fecha) {
     alert("Completá nombre y fecha del torneo interno.");
     return;
   }
 
-  db.torneosInternos.push({
-    organizador_id: intOrg.value ? parseInt(intOrg.value, 10) : null,
-    nombre,
-    fecha,
-    descripcion: intDesc.value?.trim() || ""
-  });
+  const { error } = await supabaseClient
+    .from("torneos_internos")
+    .insert({
+      nombre,
+      fecha,
+      descripcion,
+      organizador_id
+    });
 
-  try {
-    await saveDB(db);
-
-    db = await getDB();
-    cargarInternos();
-
-    intOrg.value = "";
-    intNombre.value = "";
-    intFecha.value = "";
-    intDesc.value = "";
-  } catch (error) {
-    alert(`No se pudo crear el torneo interno: ${error.message}`);
+  if (error) {
+    alert("Error al crear torneo interno: " + error.message);
+    return;
   }
+
+  intNombre.value = "";
+  intFecha.value = "";
+  intDesc.value = "";
+  intOrg.value = "";
+
+  db = await getDB();
+  cargarInternos();
 }
 
 function cargarClubesTorneo(){
@@ -957,4 +956,5 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
