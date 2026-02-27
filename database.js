@@ -132,9 +132,19 @@ async function syncTable(table, rows, options = {}) {
 async function saveDB(db) {
   const clubes = await syncTable("clubes", db.clubes || []);
   const jugadores = await syncTable("jugadores", db.jugadores || []);
+  const torneosFederadosNormalizados = (db.torneosFederados || []).map(torneo => {
+    const next = { ...torneo };
+
+    if (next.descripcion == null && next.observacion != null) {
+      next.descripcion = next.observacion;
+    }
+
+    delete next.observacion;
+    return next;
+  });
   const torneosFederados = await syncTable(
     "torneos_federados",
-    db.torneosFederados || [],
+    torneosFederadosNormalizados,
     { stripFields: ["inscriptos"] }
   );
   const torneosInternos = await syncTable(
@@ -339,5 +349,6 @@ window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 window.crearTorneoInterno = crearTorneoInterno;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
 window.subirLogoClub = subirLogoClub;
+
 
 
