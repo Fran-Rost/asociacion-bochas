@@ -369,10 +369,10 @@ function toggleJugador(ti, club, jugador, checked){
   }
 }
 
-async function eliminarTorneoFederado(index){
+function eliminarTorneoFederado(index){
   if(!confirm("¿Eliminar este torneo federado?")) return;
 
-  const torneo = db.torneosFederados[index];
+ const torneo = db.torneosFederados[index];
   const torneoId = Number(torneo?.id);
 
   if(!Number.isInteger(torneoId) || torneoId <= 0){
@@ -380,31 +380,36 @@ async function eliminarTorneoFederado(index){
     return;
   }
 
-  const { error: deleteInscriptosError } = await supabaseClient
+  supabaseClient
     .from("torneo_federado_inscriptos")
     .delete()
-    .eq("torneo_id", torneoId);
+    .eq("torneo_id", torneoId)
+    .then(({ error: deleteInscriptosError }) => {
+      if(deleteInscriptosError){
+        alert(`No se pudieron eliminar los inscriptos: ${deleteInscriptosError.message}`);
+        return Promise.reject(deleteInscriptosError);
+      }
 
-  if(deleteInscriptosError){
-    alert(`No se pudieron eliminar los inscriptos: ${deleteInscriptosError.message}`);
-    return;
-  }
+      return supabaseClient
+        .from("torneos_federados")
+        .delete()
+        .eq("id", torneoId);
+    })
+    .then(({ error: deleteTorneoError }) => {
+      if(deleteTorneoError){
+        alert(`No se pudo eliminar el torneo federado: ${deleteTorneoError.message}`);
+        return;
+      }
 
-  const { error: deleteTorneoError } = await supabaseClient
-    .from("torneos_federados")
-    .delete()
-    .eq("id", torneoId);
-
-  if(deleteTorneoError){
-    alert(`No se pudo eliminar el torneo federado: ${deleteTorneoError.message}`);
-    return;
-  }
-
-  db = await getDB();
-  cargarFederados();
-  cargarClubesTorneo();
+      return getDB().then((nextDb) => {
+        db = nextDb;
+        cargarFederados();
+        cargarClubesTorneo();
+      });
+    })
+    .catch(() => {});
 }
-
+  
 function toggle(id){
   const e=document.getElementById(id);
   e.style.display = e.style.display==="none"?"block":"none";
@@ -658,7 +663,7 @@ async function crearTorneoFederado(){
   cargarClubesTorneo();
 }
 
-async function crearTorneoInterno(){
+function crearTorneoInterno(){
   const nombre = intNombre.value?.trim();
   const fecha = intFecha.value?.trim();
   const descripcion = intDesc.value?.trim() || "";
@@ -700,22 +705,16 @@ async function crearTorneoInterno(){
   cargarInternos();
 }
 
-    const result = await response.json();
-    console.log("STATUS:", response.status);
-    console.log("RESULT:", result);
-
-    if (!response.ok) {
-      alert("Error real: " + JSON.stringify(result));
-      return;
-    }
-
-    db = await getDB();
-    cargarInternos();
-
-  } catch (err) {
-    console.error(err);
-    alert("Error inesperado");
-  }
+      intOrg.value = "";
+      intNombre.value = "";
+      intFecha.value = "";
+      intDesc.value = "";
+  
+    return getDB().then((nextDb) => {
+        db = nextDb;
+        cargarInternos();
+      });
+    });
 }
   
 function cargarClubesTorneo(){
@@ -1051,6 +1050,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
