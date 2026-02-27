@@ -304,9 +304,9 @@ function cargarFederados(){
       <input value="${t.fecha}"
         onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
 
-      Observación:
-      <input value="${t.observacion}"
-        onchange="db.torneosFederados[${ti}].observacion=this.value"><br><br>
+      Observación:␊
+      <input value="${t.descripcion || t.observacion || ""}"
+        onchange="db.torneosFederados[${ti}].descripcion=this.value; delete db.torneosFederados[${ti}].observacion"><br><br>
 
       <button class="save" onclick="toggle('ins-${ti}')">
         Editar inscriptos
@@ -957,3 +957,4 @@ async function agregarJugador(){
 
 </body>
 </html>
+
