@@ -7,10 +7,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
-
-
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="/database.js"></script>
 <link rel="stylesheet" href="styles.css">
 
 <style>
@@ -20,6 +18,7 @@ body{
   background:#f2f2f2;
   font-size:17px;
 }
+
 nav button{
   padding:10px 20px;
   margin:5px;
@@ -53,29 +52,45 @@ th{
   background:#8b0000;
   color:#fff;
 }
+/* VISOR DE TABLA */
 .table-visor {
-  max-height: 400px;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-x: auto;        /* Scroll horizontal si es necesario */
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 6px;
   background: #fff;
   margin-bottom: 15px;
 }
+
 #tablaJugadores th, #tablaJugadores td{
   border:1px solid #999;
   padding:8px;
   text-align:center;
-  white-space: nowrap;
+  white-space: nowrap; /* Para que las columnas no se rompan */
 }
+
 #tablaJugadores th{
   background:#8b0000;
   color:#fff;
-  position: sticky;
+  position: sticky;  /* Cabecera fija al hacer scroll */
   top: 0;
   z-index: 2;
 }
+
+.sortable-header{cursor:pointer;}
+.sortable-header.active-sort{background:#0b4f6c;}
+.sortable-header span[aria-hidden="true"]{opacity:.25;}
+.sortable-header.active-sort span[aria-hidden="true"]{opacity:1;}
+.sort-active-indicator{margin:10px 0 14px;font-size:14px;color:#333;}
+.sort-active-indicator strong{color:#8b0000;}
+.club-logo-preview{
+  max-width:120px;
+  max-height:120px;
+  object-fit:contain;
+  border:1px solid #ccc;
+  margin-top:8px;
+}
+
 input,select{padding:5px;}
 input[type="number"]{width:60px;}
 .save{
@@ -106,67 +121,106 @@ hr{margin:25px 0;}
   </div>
 </header>
 
+<!-- ================= INICIO ================= -->
 <section id="inicio" class="section active">
 
+  <!-- ===== TORNEOS FEDERADOS ===== -->
 <div class="box">
 <h2>Torneos Federados</h2>
+
 <div id="listaFederados"></div>
+
 <hr>
+
 <h3>Crear torneo federado</h3>
 Fecha: <input id="fedFecha"><br><br>
 Observación: <input id="fedObs"><br><br>
+
 <div id="torneoClubes"></div>
+
 <button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
 </div>
 
+<!-- ===== TORNEOS (torneos_nuevos) ===== -->
+<div class="box">
+<h2>Torneos</h2>
+
+<div id="listaTorneosNuevos"></div>
+
+<hr>
+
+<h3>Crear torneo</h3>
+Nombre: <input id="torneoNuevoNombre"><br><br>
+Fecha: <input id="torneoNuevoFecha"><br><br>
+Descripción: <input id="torneoNuevoDesc"><br><br>
+
+<button class="save" onclick="crearTorneoNuevo()">Crear torneo</button>
+</div>
+
+<!-- ===== TORNEOS INTERNOS ===== -->
 <div class="box">
 <h2>Torneos Internos</h2>
+
 <div id="listaInternos"></div>
+
 <hr>
+
 <h3>Crear torneo interno</h3>
-Organizador: <input id="intOrg"><br><br>
+Organizador: <select id="intOrg"></select><br><br>
 Nombre: <input id="intNombre"><br><br>
 Fecha: <input id="intFecha"><br><br>
 Descripción: <input id="intDesc"><br><br>
+
 <button class="save" onclick="crearTorneoInterno()">Crear torneo interno</button>
 </div>
 
+<button class="save" onclick="guardarTorneosNuevos()">Guardar torneos</button>
 <button class="save" onclick="saveDB(db)">Guardar cambios</button>
 
 </section>
 
+<!-- ================= CLUBES ================= -->
 <section id="clubes" class="section">
 <div class="box">
 <h2>Clubes</h2>
+
 <div id="adminClubes"></div>
+
 <hr>
+
 <h3>Agregar club</h3>
 Nombre: <input id="nuevoClubNombre">
-Ubicación: <input id="nuevoClubUbicacion">
+Ubicación: <input id="nuevoClubUbicacion"><br><br>
+Logo (archivo): <input id="nuevoClubLogoFile" type="file" accept="image/*"><br><br>
+Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
 <button class="save" onclick="agregarClub()">Agregar club</button>
+
 <br><br>
 <button class="save" onclick="guardarClubes()">Guardar cambios</button>
 </div>
 </section>
 
+<!-- ================= JUGADORES ================= -->
 <section id="jugadores" class="section">
 <div class="box">
   <h2>Jugadores</h2>
+
+  <!-- VISOR DE TABLA -->
  <div class="table-visor">
   <table id="tablaJugadores">
     <thead>
       <tr>
-        <th>Nombre</th>
-        <th>Club</th>
-        <th>Categoría</th>
-        <th>Jugados</th>
-        <th>1° Ronda</th>
-        <th>Zona</th>
-        <th>16avos</th>
-        <th>Octavos</th>
-        <th>Cuartos</th>
+        <th class="sortable-header" data-field="nombre" onclick="toggleSortCriterion('nombre')">Nombre <span aria-hidden="true">●</span></th>
+        <th class="sortable-header" data-field="club_id" onclick="toggleSortCriterion('club_id')">Club <span aria-hidden="true">●</span></th>
+        <th class="sortable-header" data-field="categoria" onclick="toggleSortCriterion('categoria')">Categoría <span aria-hidden="true">●</span></th>
+        <th class="sortable-header" data-field="torneos" onclick="toggleSortCriterion('torneos')">Jugados <span aria-hidden="true">●</span></th>
+        <th>1° Partido</th>
+        <th>2° Partido</th>
+        <th>3° Partido</th>
+        <th>4° Partido</th>
+        <th>5° Partido</th>
         <th>Semifinal</th>
-        <th>Subcampeón</th>
+        <th>Final</th>
         <th>Campeón</th>
         <th>Eliminar</th>
       </tr>
@@ -174,65 +228,49 @@ Ubicación: <input id="nuevoClubUbicacion">
     <tbody id="tablaJugadoresBody"></tbody>
   </table>
 </div>
+<p id="sortActiveIndicator" class="sort-active-indicator">Orden activo: ninguno</p>
 
-<button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
-<hr>
-<h3>Agregar jugador</h3>
-Nombre: <input id="nuevoJugadorNombre">
-Club: <select id="nuevoJugadorClub"></select>
-Categoría:
-<select id="nuevoJugadorCategoria">
-  <option>Primera</option>
-  <option>Segunda</option>
-  <option>Tercera</option>
-</select>
-<button class="save" onclick="agregarJugador()">Agregar jugador</button>
+  <button class="save" onclick="guardarJugadores()">Guardar jugadores</button>
+  <hr>
+
+  <h3>Agregar jugador</h3>
+  Nombre: <input id="nuevoJugadorNombre">
+
+  Club:
+  <select id="nuevoJugadorClub"></select>
+
+  Categoría:
+  <select id="nuevoJugadorCategoria">
+    <option>Primera</option>
+    <option>Segunda</option>
+    <option>Tercera</option>
+  </select>
+
+  <button class="save" onclick="agregarJugador()">Agregar jugador</button>
 </div>
 </section>
 
 <script>
-/* =================== Supabase Admin =================== */
-const SUPABASE_URL = "https://arknvnqdjqmfvmrkguyz.supabase.co";
-const SUPABASE_KEY = "sb_secret_HP6jinyEj75mkCLcH8-u6Q_QiN4iad8"; // usar service_role key para admin
-const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-async function getDB() {
-  const db = { clubes: [], torneosFederados: [], torneosInternos: [] };
-
-  const { data: clubesData } = await supabase.from("clubes").select("*");
-  if(clubesData) db.clubes = clubesData.map(c=>({
-    nombre: c.nombre,
-    ubicacion: c.ubicacion,
-    jugadores: c.jugadores || []
-  }));
-
-  const { data: fedData } = await supabase.from("torneosFederados").select("*");
-  if(fedData) db.torneosFederados = fedData;
-
-  const { data: intData } = await supabase.from("torneosInternos").select("*");
-  if(intData) db.torneosInternos = intData;
-
-  return db;
-}
-
-/* =================== Código original de admin =================== */
 let db;
+let sortCriteria = [];
+const sortFieldOrder = ["nombre", "club_id", "categoria", "torneos"];
+
 document.addEventListener("DOMContentLoaded", async () => {
-  db = await getDB();
-
-  function showSection(id){
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+if (typeof window.getDB !== "function") {
+    console.error("No se cargo database.js o fallo su inicializacion.");
+    return;
   }
-  window.showSection = showSection;
 
-  function toggle(id){
-    const e=document.getElementById(id);
-    e.style.display = e.style.display==="none"?"block":"none";
-  }
-  window.toggle = toggle;
+  db = await window.getDB();
 
-const db = getDB();
+  cargarFederados();
+  cargarTorneosNuevos();
+  cargarInternos();
+  cargarJugadores();
+  cargarClubesAdmin();
+  cargarSelectClubes();
+  cargarClubesTorneo();
+});
 
 /* -------- Navegación -------- */
 function showSection(id){
@@ -243,6 +281,10 @@ function showSection(id){
 /* ================= TORNEOS ================= */
 
 function cargarFederados(){
+  if(!db || !db.torneosFederados){
+  return;
+}
+
   const cont = document.getElementById("listaFederados");
   cont.innerHTML = "";
 
@@ -286,13 +328,21 @@ function cargarFederados(){
 }
 
 function renderInscriptosFederado(torneo, ti){
+
+  if(!torneo.inscriptos) torneo.inscriptos = {};
+
   return db.clubes.map(club=>{
-    const ins = torneo.inscriptos[club.nombre] || [];
+
+    const jugadoresDelClub = db.jugadores
+      ? db.jugadores.filter(j=>j.club_id === club.id)
+      : (club.jugadores || []);
+
+    const ins = torneo.inscriptos?.[club.nombre] || [];
 
     return `
       <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
         <strong>${club.nombre}</strong><br>
-        ${club.jugadores.map(j=>`
+        ${jugadoresDelClub.map(j=>`
           <label>
             <input type="checkbox"
               ${ins.includes(j.nombre) ? "checked" : ""}
@@ -319,10 +369,11 @@ function toggleJugador(ti, club, jugador, checked){
   }
 }
 
-function eliminarTorneoFederado(index){
+async function eliminarTorneoFederado(index){
   if(!confirm("¿Eliminar este torneo federado?")) return;
   db.torneosFederados.splice(index,1);
-  saveDB(db);
+  await saveDB(db);
+  db = await getDB();
   cargarFederados();
 }
 
@@ -331,9 +382,133 @@ function toggle(id){
   e.style.display = e.style.display==="none"?"block":"none";
 }
 
+  function getPrimaryKeyHelpMessage(errorMessage){
+  const msg = String(errorMessage || "").toLowerCase();
+  if(msg.includes("no primary keys") || msg.includes("primary key")){
+    return "\n\nTip de Supabase: la tabla necesita una PK (por ejemplo `id bigint generated by default as identity primary key`) para poder borrar filas desde el editor.";
+  }
+  return "";
+}
+
+/* ================= TORNEOS NUEVOS ================= */
+
+function cargarTorneosNuevos(){
+  if(!db || !db.torneosNuevos){
+    return;
+  }
+
+  const cont = document.getElementById("listaTorneosNuevos");
+  cont.innerHTML = "";
+
+  if(db.torneosNuevos.length === 0){
+    cont.innerHTML = "<p>No hay torneos cargados.</p>";
+    return;
+  }
+
+  const torneosOrdenados = [...db.torneosNuevos].sort((a,b) => String(b.fecha || b.created_at || "").localeCompare(String(a.fecha || a.created_at || "")));
+
+  torneosOrdenados.forEach((t) => {
+    const ti = db.torneosNuevos.findIndex(x => x.id === t.id);
+    const div = document.createElement("div");
+    div.className = "club";
+
+    div.innerHTML = `
+      <strong>${t.nombre || t.titulo || `Torneo #${t.id}`}</strong><br><br>
+
+      Nombre:
+      <input value="${t.nombre || t.titulo || ""}"
+        onchange="db.torneosNuevos[${ti}].nombre=this.value; db.torneosNuevos[${ti}].titulo=this.value"><br><br>
+
+      Fecha:
+      <input value="${t.fecha || ""}"
+        onchange="db.torneosNuevos[${ti}].fecha=this.value"><br><br>
+
+      Descripción:
+      <input value="${t.descripcion || t.observacion || ""}"
+        onchange="db.torneosNuevos[${ti}].descripcion=this.value"><br><br>
+
+      <button class="save"
+        style="background:#a00"
+        onclick="eliminarTorneoNuevo(${ti})">
+        Eliminar torneo
+      </button>
+    `;
+
+    cont.appendChild(div);
+  });
+}
+
+async function guardarTorneosNuevos(){
+  try {
+    await saveDB(db);
+    db = await getDB();
+    cargarTorneosNuevos();
+    alert("Torneos guardados correctamente.");
+  } catch (error) {
+    alert(`No se pudieron guardar los torneos: ${error.message}`);
+  }
+}
+
+async function eliminarTorneoNuevo(index){
+  if(!confirm("¿Eliminar este torneo?")) return;
+
+  const torneo = db.torneosNuevos[index];
+  const torneoId = Number(torneo?.id);
+
+  if(!Number.isInteger(torneoId) || torneoId <= 0) {
+    alert("Este torneo no tiene ID persistido. Guardá/recargá y volvé a intentar.");
+    return;
+  }
+
+  const { error: deleteTorneoError } = await supabaseClient
+    .from("torneos_nuevos")
+    .delete()
+    .eq("id", torneoId);
+
+  if(deleteTorneoError) {
+    alert(`No se pudo eliminar el torneo: ${deleteTorneoError.message}${getPrimaryKeyHelpMessage(deleteTorneoError.message)}`);
+    return;
+  }
+
+  db = await getDB();
+  cargarTorneosNuevos();
+}
+
+
+async function crearTorneoNuevo(){
+  const nombre = torneoNuevoNombre.value?.trim();
+  const fecha = torneoNuevoFecha.value?.trim();
+  const descripcion = torneoNuevoDesc.value?.trim();
+
+  if (!nombre || !fecha) {
+    alert("Completá nombre y fecha del torneo.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("torneos_nuevos")
+    .insert({ nombre, fecha, descripcion });
+
+  if (error) {
+    alert(`No se pudo crear el torneo: ${error.message}`);
+    return;
+  }
+
+  torneoNuevoNombre.value = "";
+  torneoNuevoFecha.value = "";
+  torneoNuevoDesc.value = "";
+
+  db = await getDB();
+  cargarTorneosNuevos();
+}
+
 /* ================= TORNEOS INTERNOS ================= */
 
 function cargarInternos(){
+  if(!db || !db.torneosInternos){
+  return;
+}
+
   const cont = document.getElementById("listaInternos");
   cont.innerHTML = "";
 
@@ -348,7 +523,7 @@ function cargarInternos(){
     div.innerHTML = `
       <strong>${t.nombre}</strong><br>
       <strong>Fecha:</strong> ${t.fecha}<br>
-      <strong>Organiza:</strong> ${t.organizador}<br>
+      <strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}<br>
       <em>${t.descripcion}</em><br><br>
 
       <button class="save"
@@ -361,189 +536,423 @@ function cargarInternos(){
   });
 }
 
-function eliminarTorneoInterno(index){
+async function eliminarTorneoInterno(index){
   if(!confirm("¿Eliminar este torneo interno?")) return;
-  db.torneosInternos.splice(index,1);
-  saveDB(db);
+
+  const torneo = db.torneosInternos[index];
+  const torneoId = Number(torneo?.id);
+
+  if(!Number.isInteger(torneoId) || torneoId <= 0){
+    alert("Este torneo no tiene un ID válido en la base de datos.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("torneos_internos")
+    .delete()
+    .eq("id", torneoId);
+
+  if(error){
+    alert("Error al eliminar: " + error.message);
+    return;
+  }
+
+  db = await getDB();
   cargarInternos();
 }
 
-function agregarTorneoInterno(){
-  db.torneosInternos.push({
-    nombre: intNombre.value,
-    fecha: intFecha.value,
-    organizador: intOrganizador.value,
-    descripcion: intDescripcion.value
+async function crearTorneoFederado(){
+  const fecha = fedFecha.value?.trim();
+  const observacion = fedObs.value?.trim() || "";
+
+  if (!fecha) {
+    alert("Completá la fecha del torneo federado.");
+    return;
+  }
+
+  const ins = {};
+  document.querySelectorAll("#torneoClubes .club").forEach(c => {
+    const n = c.querySelector("strong")?.innerText;
+    const j = [];
+    c.querySelectorAll(".jugador").forEach(x => x.checked && j.push(x.value));
+    if (n) ins[n] = j;
   });
 
-  saveDB(db);
-  cargarInternos();
+  db.torneosFederados.push({ fecha, observacion, inscriptos: ins });
 
-  intNombre.value = "";
-  intFecha.value = "";
-  intOrganizador.value = "";
-  intDescripcion.value = "";
+  try {
+    await saveDB(db);
+    db = await getDB();
+    cargarFederados();
+    cargarClubesTorneo();
+
+    fedFecha.value = "";
+    fedObs.value = "";
+  } catch (error) {
+    alert(`No se pudo crear el torneo federado: ${error.message}`);
+  }
 }
 
-/* Cargar al iniciar */
-cargarInternos();
+  async function crearTorneoInterno(){
+  const nombre = intNombre.value?.trim();
+  const fecha = intFecha.value?.trim();
 
+  if (!nombre || !fecha) {
+    alert("Completá nombre y fecha del torneo interno.");
+    return;
+  }
+
+  db.torneosInternos.push({
+    organizador_id: intOrg.value ? parseInt(intOrg.value, 10) : null,
+    nombre,
+    fecha,
+    descripcion: intDesc.value?.trim() || ""
+  });
+
+  try {
+    await saveDB(db);
+
+    db = await getDB();
+    cargarInternos();
+
+    intOrg.value = "";
+    intNombre.value = "";
+    intFecha.value = "";
+    intDesc.value = "";
+  } catch (error) {
+    alert(`No se pudo crear el torneo interno: ${error.message}`);
+  }
+}
 
 function cargarClubesTorneo(){
-  const div=document.getElementById("torneoClubes");
-  div.innerHTML="";
-  db.clubes.forEach(c=>{
-    div.innerHTML+=`
-      <div class="club">
-        <strong>${c.nombre}</strong><br>
-        ${c.jugadores.map(j=>`
-          <label>
-            <input type="checkbox" class="jugador" value="${j.nombre}">
-            ${j.nombre}
-          </label><br>
-        `).join("")}
+  const cont = document.getElementById("torneoClubes");
+  if(!cont || !db) return;
+
+  cont.innerHTML = db.clubes.map(club => {
+    const jugadores = db.jugadores.filter(j => j.club_id === club.id);
+
+    return `
+      <div class="club" style="padding:10px;margin-top:10px;">
+        <strong>${club.nombre}</strong><br>
+        ${jugadores.length
+          ? jugadores.map(j => `
+              <label style="display:block;margin-top:4px;">
+                <input type="checkbox" class="jugador" value="${j.nombre}"> ${j.nombre}
+              </label>
+            `).join("")
+          : "<em>Sin jugadores cargados</em>"}
       </div>
     `;
-  });
-}
-
-function crearTorneoFederado(){
-  const ins={};
-  document.querySelectorAll("#torneoClubes .club").forEach(c=>{
-    const n=c.querySelector("strong").innerText;
-    const j=[];
-    c.querySelectorAll(".jugador").forEach(x=>x.checked&&j.push(x.value));
-    ins[n]=j;
-  });
-  db.torneosFederados.push({
-    id:Date.now(),
-    fecha:fedFecha.value,
-    observacion:fedObs.value,
-    inscriptos:ins
-  });
-  saveDB(db); location.reload();
-}
-
-function crearTorneoInterno(){
-  db.torneosInternos.push({
-    organizador:intOrg.value,
-    nombre:intNombre.value,
-    fecha:intFecha.value,
-    descripcion:intDesc.value
-  });
-  saveDB(db); location.reload();
+  }).join("");
 }
 
 /* ================= CLUBES ================= */
-const adminClubes=document.getElementById("adminClubes");
-db.clubes.forEach((c,i)=>{
-  adminClubes.innerHTML+=`
-    <div class="club">
-      Nombre: <input value="${c.nombre}" class="c-nombre"><br>
-      Ubicación: <input value="${c.ubicacion}" class="c-ubicacion"><br><br>
+function cargarClubesAdmin(){
 
-      <button class="save"
-        style="background:#a00"
-        onclick="eliminarClub(${i})">
-        Eliminar club
-      </button>
-    </div>`;
-});
+  const adminClubes=document.getElementById("adminClubes");
+  adminClubes.innerHTML="";
+
+  if(!db || !db.clubes) return;
+
+  db.clubes.forEach((c)=>{
+    adminClubes.innerHTML+=`
+      <div class="club">
+        Nombre: <input value="${c.nombre || ""}" class="c-nombre" data-id="${c.id}"><br>
+        Ubicación: <input value="${c.ubicacion || ""}" class="c-ubicacion" data-id="${c.id}"><br>
+        Logo (archivo): <input type="file" accept="image/*" class="c-logo-file" data-id="${c.id}"><br>
+        Logo URL: <input value="${c.logo_url || ""}" class="c-logo-url" data-id="${c.id}" placeholder="https://..."><br>
+        ${c.logo_url ? `<img src="${c.logo_url}" alt="Logo ${c.nombre}" class="club-logo-preview" data-id="${c.id}">` : `<img src="" alt="Sin logo" class="club-logo-preview" data-id="${c.id}" style="display:none;">`}<br>
+
+        <button class="save"
+          style="background:#a00"
+          onclick="eliminarClub(${c.id})">
+          Eliminar club
+        </button>
+      </div>`;
+  });
+}
 
 /* ================= JUGADORES ================= */
 const tabla=document.getElementById("tablaJugadores");
-function cargarJugadores(){
-  const tbody = document.getElementById("tablaJugadoresBody");
-  tbody.innerHTML = ""; // SOLO EL CUERPO, no el thead
+const categoryOrder = { Primera: 3, Segunda: 2, Tercera: 1 };
 
-  db.clubes.forEach((club,ci)=>{
-    club.jugadores.forEach((j,ji)=>{
-      tbody.innerHTML+=`
-        <tr>
-          <td><input value="${j.nombre}"></td>
-
-          <td>
-            <select class="select-club">
-              ${db.clubes.map((c,i)=>`
-                <option value="${i}" ${i===ci?"selected":""}>
-                  ${c.nombre}
-                </option>`).join("")}
-            </select>
-          </td>
-
-          <td>
-            <select class="select-categoria">
-              <option ${j.categoria==="Primera"?"selected":""}>Primera</option>
-              <option ${j.categoria==="Segunda"?"selected":""}>Segunda</option>
-              <option ${j.categoria==="Tercera"?"selected":""}>Tercera</option>
-            </select>
-          </td>
-
-          ${j.stats.map(s=>`<td><input type="number" value="${s}"></td>`).join("")}
-
-          <td>
-            <button class="save" style="background:#a00" onclick="eliminarJugador(${ci},${ji})">✕</button>
-          </td>
-        </tr>
-      `;
-    });
+function updateSortHeaders(){
+  document.querySelectorAll(".sortable-header").forEach(th => {
+    th.classList.toggle("active-sort", sortCriteria.some(c => c.field === th.dataset.field));
   });
 }
 
-function eliminarJugador(ci, ji){
-  if(!confirm("¿Eliminar este jugador?")) return;
+function updateSortIndicator(){
+  const el = document.getElementById("sortActiveIndicator");
+  if (!el) return;
 
-  db.clubes[ci].jugadores.splice(ji,1);
-  saveDB(db);
+  const labels = { nombre: "Nombre", club_id: "Club", categoria: "Categoría", torneos: "Jugados" };
+  const activos = sortFieldOrder.filter(field => sortCriteria.some(c => c.field === field));
+
+  if (!activos.length) {
+    el.innerHTML = "Orden activo: <strong>ninguno</strong>";
+    return;
+  }
+
+  el.innerHTML = `Orden activo: <strong>${activos.map(f => labels[f]).join(" + ")}</strong>`;
+}
+
+function toggleSortCriterion(field){
+  const existingIndex = sortCriteria.findIndex(c => c.field === field);
+  if (existingIndex >= 0) {
+    sortCriteria.splice(existingIndex, 1);
+  } else {
+    const defaultDirection = field === "categoria" || field === "torneos" ? "desc" : "asc";
+    sortCriteria.push({ field, direction: defaultDirection });
+  }
+
   cargarJugadores();
 }
 
-const sel=document.getElementById("nuevoJugadorClub");
-db.clubes.forEach(c=>sel.innerHTML+=`<option>${c.nombre}</option>`);
-
-function guardarClubes(){
-  document.querySelectorAll(".c-nombre").forEach((n,i)=>db.clubes[i].nombre=n.value);
-  document.querySelectorAll(".c-ubicacion").forEach((u,i)=>db.clubes[i].ubicacion=u.value);
-  saveDB(db);
+function getSortValue(jugador, field){
+  if (field === "club_id") {
+    const club = db.clubes.find(c => c.id === jugador.club_id);
+    return club?.nombre || "";
+  }
+  if (field === "categoria") {
+    return categoryOrder[jugador.categoria] || 0;
+  }
+  if (field === "torneos") {
+    return Number(jugador.torneos || 0);
+  }
+  return String(jugador[field] || "").toLowerCase();
 }
 
-function eliminarClub(index){
-  if(!confirm("⚠️ Esto eliminará el club y TODOS sus jugadores.\n¿Continuar?")) return;
-
-  db.clubes.splice(index,1);
-  saveDB(db);
-  location.reload();
+function compareValues(a, b, direction){
+  if (a < b) return direction === "asc" ? -1 : 1;
+  if (a > b) return direction === "asc" ? 1 : -1;
+  return 0;
 }
 
-function guardarJugadores(){
-  db.clubes.forEach(c=>c.jugadores=[]);
-  document.querySelectorAll("#tablaJugadores tr").forEach(tr=>{
-    const i=tr.querySelectorAll("input");
-    const ci=+tr.querySelector(".select-club").value;
-    db.clubes[ci].jugadores.push({
-      nombre:i[0].value,
-      categoria:tr.querySelector(".select-categoria").value,
-      stats:[...i].slice(1).map(x=>+x.value)
-    });
+function cargarJugadores(){
+  const tbody = document.getElementById("tablaJugadoresBody");
+  tbody.innerHTML = "";
+
+  const criteriosActivos = sortFieldOrder
+    .map(field => sortCriteria.find(c => c.field === field))
+    .filter(Boolean);
+
+  const jugadoresOrdenados = [...db.jugadores].sort((a, b) => {
+    for (const criterion of criteriosActivos) {
+      const av = getSortValue(a, criterion.field);
+      const bv = getSortValue(b, criterion.field);
+      const result = compareValues(av, bv, criterion.direction);
+      if (result !== 0) return result;
+    }
+    return 0;
   });
-  saveDB(db);
+
+  jugadoresOrdenados.forEach((j)=>{
+    const ji = db.jugadores.findIndex(item => item.id === j.id);
+    tbody.innerHTML += `
+      <tr>
+        <td><input value="${j.nombre || ""}" onchange="db.jugadores[${ji}].nombre=this.value"></td>
+
+        <td>
+          <select onchange="db.jugadores[${ji}].club_id=parseInt(this.value)">
+            ${db.clubes.map(c=>`
+              <option value="${c.id}" ${c.id===j.club_id?"selected":""}>${c.nombre}</option>
+            `).join("")}
+          </select>
+        </td>
+
+        <td>
+          <select onchange="db.jugadores[${ji}].categoria=this.value">
+            <option ${j.categoria==="Primera"?"selected":""}>Primera</option>
+            <option ${j.categoria==="Segunda"?"selected":""}>Segunda</option>
+            <option ${j.categoria==="Tercera"?"selected":""}>Tercera</option>
+          </select>
+        </td>
+
+        <td><input type="number" value="${j.torneos ?? 0}" onchange="db.jugadores[${ji}].torneos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.ronda1 ?? 0}" onchange="db.jugadores[${ji}].ronda1=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.zona ?? 0}" onchange="db.jugadores[${ji}].zona=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.dieciseisavos ?? 0}" onchange="db.jugadores[${ji}].dieciseisavos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.octavos ?? 0}" onchange="db.jugadores[${ji}].octavos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.cuartos ?? 0}" onchange="db.jugadores[${ji}].cuartos=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.semifinal ?? 0}" onchange="db.jugadores[${ji}].semifinal=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.subcampeon ?? 0}" onchange="db.jugadores[${ji}].subcampeon=parseInt(this.value)||0"></td>
+        <td><input type="number" value="${j.campeon ?? 0}" onchange="db.jugadores[${ji}].campeon=parseInt(this.value)||0"></td>
+
+        <td>
+          <button class="save" style="background:#a00" onclick="eliminarJugador(${j.id})">✕</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  updateSortHeaders();
+  updateSortIndicator();
 }
 
-function agregarClub(){
-  db.clubes.push({nombre:nuevoClubNombre.value,ubicacion:nuevoClubUbicacion.value,jugadores:[]});
-  saveDB(db);location.reload();
+async function eliminarJugador(id){
+  if(!confirm("¿Eliminar este jugador?")) return;
+
+  await supabaseClient.from("jugadores").delete().eq("id", id);
+
+  db = await getDB();
+  cargarJugadores();
 }
 
-function agregarJugador(){
-  db.clubes.find(c=>c.nombre===nuevoJugadorClub.value)
-  .jugadores.push({nombre:nuevoJugadorNombre.value,categoria:nuevoJugadorCategoria.value,stats:[0,0,0,0,0,0,0,0,0]});
-  saveDB(db);location.reload();
+function cargarSelectClubes(){
+  const sel = document.getElementById("nuevoJugadorClub");
+  const intOrgSel = document.getElementById("intOrg");
+  if(!db || !db.clubes) return;
+
+  if (sel) {
+    sel.innerHTML = "";
+    db.clubes.forEach(c=>{
+      sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+  }
+
+  if (intOrgSel) {
+    intOrgSel.innerHTML = '<option value="">Asociación</option>';
+    db.clubes.forEach(c=>{
+      intOrgSel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+  }
 }
 
-cargarFederados();
-cargarInternos();
-cargarClubesTorneo();
-cargarJugadores();
+async function cargarLogoDesdeArchivo(file){
+  if (!file) return { url: null, error: null };
+
+  const { data, error } = await subirLogoClub(file, { bucket: "clubes-logos" });
+  if (error) return { url: null, error };
+
+  return { url: data?.publicUrl || null, error: null };
+}
+
+function actualizarPreviewLogo(clubId, logoUrl){
+  const img = document.querySelector(`.club-logo-preview[data-id="${clubId}"]`);
+  if (!img) return;
+
+  if (logoUrl) {
+    img.src = logoUrl;
+    img.style.display = "block";
+  } else {
+    img.src = "";
+    img.style.display = "none";
+  }
+}
+
+async function guardarClubes(){
+  const nombres = [...document.querySelectorAll(".c-nombre")];
+
+  for (const inputNombre of nombres) {
+    const id = parseInt(inputNombre.dataset.id, 10);
+    const nombre = inputNombre.value;
+    const ubicacion = document.querySelector(`.c-ubicacion[data-id="${id}"]`)?.value || "";
+    const logoInput = document.querySelector(`.c-logo-url[data-id="${id}"]`);
+    const logoFile = document.querySelector(`.c-logo-file[data-id="${id}"]`)?.files?.[0];
+
+    let logo_url = logoInput?.value?.trim() || null;
+
+    if (logoFile) {
+      const { url, error } = await cargarLogoDesdeArchivo(logoFile);
+      if (error) {
+        alert(`No se pudo subir el logo del club ${nombre}: ${error.message}`);
+        continue;
+      }
+      logo_url = url;
+      if (logoInput) logoInput.value = logo_url || "";
+    }
+
+    await actualizarClub(id, nombre, ubicacion, logo_url || null);
+    actualizarPreviewLogo(id, logo_url);
+  }
+
+  db = await getDB();
+  cargarClubesAdmin();
+  cargarSelectClubes();
+  cargarClubesTorneo();
+}
+
+async function eliminarClub(id){
+  if(!confirm("⚠️ Esto eliminará el club y sus jugadores.\n¿Continuar?")) return;
+
+  await supabaseClient.from("jugadores").delete().eq("club_id", id);
+  await supabaseClient.from("clubes").delete().eq("id", id);
+
+  db = await getDB();
+  cargarClubesAdmin();
+  cargarJugadores();
+  cargarClubesTorneo();
+}
+
+
+async function guardarJugadores(){
+  await saveDB(db);
+  db = await getDB();
+  cargarJugadores();
+  cargarClubesTorneo();
+}
+
+async function agregarClub(){
+  let logoUrl = nuevoClubLogoUrl.value?.trim() || null;
+  const logoFile = nuevoClubLogoFile.files?.[0];
+
+  if (logoFile) {
+    const { url, error: uploadError } = await cargarLogoDesdeArchivo(logoFile);
+    if (uploadError) {
+      alert(`No se pudo subir el logo: ${uploadError.message}`);
+      return;
+    }
+    logoUrl = url;
+  }
+
+  const { error } = await crearClub(
+    nuevoClubNombre.value,
+    nuevoClubUbicacion.value,
+    logoUrl
+  );
+
+  if (error) {
+    alert(`No se pudo crear el club: ${error.message}`);
+    return;
+  }
+
+  nuevoClubNombre.value = "";
+  nuevoClubUbicacion.value = "";
+  nuevoClubLogoUrl.value = "";
+  nuevoClubLogoFile.value = "";
+
+  db = await getDB();
+  cargarClubesAdmin();
+  cargarSelectClubes();
+  cargarClubesTorneo();
+}
+
+async function agregarJugador(){
+
+  await supabaseClient.from("jugadores").insert({
+    nombre: nuevoJugadorNombre.value,
+    categoria: nuevoJugadorCategoria.value,
+    club_id: parseInt(nuevoJugadorClub.value),
+    torneos: 0,
+    ronda1: 0,
+    zona: 0,
+    dieciseisavos: 0,
+    octavos: 0,
+    cuartos: 0,
+    semifinal: 0,
+    subcampeon: 0,
+    campeon: 0
+  });
+
+  nuevoJugadorNombre.value = "";
+  nuevoJugadorCategoria.value = "Primera";
+
+  db = await getDB();
+  cargarJugadores();
+  cargarClubesTorneo();
+}
+
 </script>
 
 </body>
