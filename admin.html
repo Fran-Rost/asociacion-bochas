@@ -561,28 +561,30 @@ async function eliminarTorneoInterno(index){
   cargarInternos();
 }
 
-async function crearTorneoFederado(){
-  const fecha = fedFecha.value?.trim();
-  const observacion = fedObs.value?.trim() || "";
+async function crearTorneoFederado() {
+  const fechaRaw = fedFecha.value;
+  const observacion = fedObs.value?.trim() || null;
 
-  console.log({
-  fecha,
-  observacion
-});
-  
-  if (!fecha) {
+  if (!fechaRaw) {
     alert("Completá la fecha del torneo federado.");
     return;
   }
 
-  const { error } = await supabaseClient
+  // Forzar formato YYYY-MM-DD
+  const fecha = new Date(fechaRaw).toISOString().split("T")[0];
+
+  const { data, error } = await supabaseClient
     .from("torneos_federados")
-    .insert({
-      fecha,
-      observacion
-    });
+    .insert([
+      {
+        fecha,
+        observacion
+      }
+    ])
+    .select();
 
   if (error) {
+    console.error("ERROR FEDERADO:", error);
     alert("Error al crear torneo federado: " + error.message);
     return;
   }
@@ -594,37 +596,42 @@ async function crearTorneoFederado(){
   cargarFederados();
 }
 
-  async function crearTorneoInterno(){
+async function crearTorneoInterno() {
   const nombre = intNombre.value?.trim();
-  const fecha = intFecha.value?.trim();
-  const descripcion = intDesc.value?.trim() || "";
-  const organizador_id =
-  intOrg.value && !isNaN(parseInt(intOrg.value))
-    ? parseInt(intOrg.value)
-    : null;
+  const fechaRaw = intFecha.value;
+  const descripcion = intDesc.value?.trim() || null;
 
-    console.log({
-  nombre,
-  fecha,
-  descripcion,
-  organizador_id
-});
-    
-  if (!nombre || !fecha) {
+  if (!nombre || !fechaRaw) {
     alert("Completá nombre y fecha del torneo interno.");
     return;
   }
 
-  const { error } = await supabaseClient
+  // Forzar formato correcto de fecha
+  const fecha = new Date(fechaRaw).toISOString().split("T")[0];
+
+  // Validar organizador
+  let organizador_id = null;
+  if (intOrg.value) {
+    const parsed = parseInt(intOrg.value);
+    if (!isNaN(parsed)) {
+      organizador_id = parsed;
+    }
+  }
+
+  const { data, error } = await supabaseClient
     .from("torneos_internos")
-    .insert({
-      nombre,
-      fecha,
-      descripcion,
-      organizador_id
-    });
+    .insert([
+      {
+        nombre,
+        fecha,
+        descripcion,
+        organizador_id
+      }
+    ])
+    .select();
 
   if (error) {
+    console.error("ERROR INTERNO:", error);
     alert("Error al crear torneo interno: " + error.message);
     return;
   }
@@ -971,6 +978,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
