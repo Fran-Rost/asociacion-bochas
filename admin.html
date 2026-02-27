@@ -570,21 +570,19 @@ async function crearTorneoFederado() {
     return;
   }
 
-  // Forzar formato YYYY-MM-DD
   const fecha = new Date(fechaRaw).toISOString().split("T")[0];
 
-  const { data, error } = await supabaseClient
+  const { error } = await supabaseClient
     .from("torneos_federados")
     .insert([
       {
         fecha,
         observacion
       }
-    ])
-    .select();
+    ]);
 
   if (error) {
-    console.error("ERROR FEDERADO:", error);
+    console.error(error);
     alert("Error al crear torneo federado: " + error.message);
     return;
   }
@@ -606,32 +604,22 @@ async function crearTorneoInterno() {
     return;
   }
 
-  // Forzar formato correcto de fecha
   const fecha = new Date(fechaRaw).toISOString().split("T")[0];
 
-  // Validar organizador
-  let organizador_id = null;
-  if (intOrg.value) {
-    const parsed = parseInt(intOrg.value);
-    if (!isNaN(parsed)) {
-      organizador_id = parsed;
-    }
-  }
-
-  const { data, error } = await supabaseClient
+  // 🔥 FORZAMOS organizador_id a null para descartar problema de FK
+  const { error } = await supabaseClient
     .from("torneos_internos")
     .insert([
       {
         nombre,
         fecha,
         descripcion,
-        organizador_id
+        organizador_id: null
       }
-    ])
-    .select();
+    ]);
 
   if (error) {
-    console.error("ERROR INTERNO:", error);
+    console.error(error);
     alert("Error al crear torneo interno: " + error.message);
     return;
   }
@@ -978,6 +966,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
