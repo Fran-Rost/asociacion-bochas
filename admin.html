@@ -565,6 +565,11 @@ async function crearTorneoFederado(){
   const fecha = fedFecha.value?.trim();
   const observacion = fedObs.value?.trim() || "";
 
+  console.log({
+  fecha,
+  observacion
+});
+  
   if (!fecha) {
     alert("Completá la fecha del torneo federado.");
     return;
@@ -593,8 +598,18 @@ async function crearTorneoFederado(){
   const nombre = intNombre.value?.trim();
   const fecha = intFecha.value?.trim();
   const descripcion = intDesc.value?.trim() || "";
-  const organizador_id = intOrg.value ? parseInt(intOrg.value) : null;
+  const organizador_id =
+  intOrg.value && !isNaN(parseInt(intOrg.value))
+    ? parseInt(intOrg.value)
+    : null;
 
+    console.log({
+  nombre,
+  fecha,
+  descripcion,
+  organizador_id
+});
+    
   if (!nombre || !fecha) {
     alert("Completá nombre y fecha del torneo interno.");
     return;
@@ -956,5 +971,6 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
