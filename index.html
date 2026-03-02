@@ -250,6 +250,7 @@ th {
       <button onclick="showSection('inicio')">Inicio</button>
       <button onclick="showSection('clubes')">Clubes</button>
       <button onclick="showSection('jugadores')">Jugadores</button>
+      <button onclick="showSection('novedades')">Novedades</button>
     </nav>
   </div>
 </header>
@@ -308,6 +309,12 @@ th {
   <p id="sortActiveIndicator" class="sort-active-indicator">Orden activo: ninguno</p>
 </section>
 
+<!-- ================= NOVEDADES ================= -->
+<section id="novedades" class="section">
+  <h2>Novedades y Noticias</h2>
+  <div id="novedadesContainer"></div>
+</section>
+  
 <script>
 const categoryOrder = { Primera: 3, Segunda: 2, Tercera: 1 };
 let sortCriteria = [];
@@ -564,10 +571,41 @@ if (typeof window.getDB !== "function") {
   updateSortHeaders();
   updateSortIndicator();
 
+/* ================= NOVEDADES ================= */
+
+if (typeof supabaseClient !== "undefined") {
+  const { data: novedades, error } = await supabaseClient
+    .from("novedades")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error cargando novedades:", error.message);
+  } else {
+    const novCont = document.getElementById("novedadesContainer");
+    novCont.innerHTML = "";
+
+    novedades?.forEach(n => {
+      const div = document.createElement("div");
+      div.className = "club-card";
+
+      div.innerHTML = `
+        ${n.imagen_url ? `<img src="${n.imagen_url}" style="max-width:100%; border-radius:8px; margin-bottom:10px;">` : ""}
+        <h3>${n.titulo}</h3>
+        <p>${n.descripcion ?? ""}</p>
+        <small>${new Date(n.created_at).toLocaleDateString()}</small>
+      `;
+
+      novCont.appendChild(div);
+    });
+  }
+}
+  
   showSection('inicio');
 });
 
 </script>
+
 
 
 
