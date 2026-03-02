@@ -117,6 +117,7 @@ hr{margin:25px 0;}
       <button onclick="showSection('inicio')">Inicio</button>
       <button onclick="showSection('clubes')">Clubes</button>
       <button onclick="showSection('jugadores')">Jugadores</button>
+      <button onclick="showSection('novedadesAdmin')">Novedades</button>
     </nav>
   </div>
 </header>
@@ -250,7 +251,40 @@ Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
 </div>
 </section>
 
+<!-- ================= NOVEDADES ================= -->
+<section id="novedadesAdmin" class="section">
+  <div class="box">
+    <h3>Publicar Novedad</h3>
+
+    Título: <input id="novTitulo"><br><br>
+
+    Descripción:
+    <textarea id="novDesc" rows="4" style="width:100%"></textarea><br><br>
+
+    Imagen:
+    <input type="file" id="novImagen" accept="image/*"><br><br>
+
+    <button class="save" onclick="publicarNovedad()">Publicar</button>
+  </div>
+
+  <div id="listaNovedades"></div>
+</section>
+  
 <script>
+// ================= SEGURIDAD SIMPLE =================
+(function() {
+  const session = sessionStorage.getItem("admin_auth");
+  if (session !== "true") {
+    const pass = prompt("Ingrese la clave de administrador:");
+    if (pass === "B0ch4s123") { // <-- PONÉ TU CLAVE REAL
+      sessionStorage.setItem("admin_auth", "true");
+    } else {
+      alert("Acceso denegado");
+      document.body.innerHTML = "<h1>No tienes permiso para ver esta página</h1>";
+      window.location.href = "index.html";
+    }
+  }
+})();
 let db;
 let sortCriteria = [];
 const sortFieldOrder = ["nombre", "club_id", "categoria", "torneos"];
@@ -968,11 +1002,58 @@ async function agregarJugador(){
   cargarJugadores();
   cargarClubesTorneo();
 }
+  
+// ================= NOVEDADES =================
 
+async function publicarNovedad() {
+  const titulo = document.getElementById("novTitulo").value.trim();
+  const descripcion = document.getElementById("novDesc").value.trim();
+  const imagenFile = document.getElementById("novImagen").files[0];
+
+  if (!titulo) {
+    alert("El título es obligatorio");
+    return;
+  }
+
+  let imagen_url = null;
+
+  if (imagenFile) {
+    const { data, error } = await subirLogoClub(imagenFile, { bucket: "novedades" });
+
+    if (error) {
+      alert("Error al subir imagen: " + error.message);
+      return;
+    }
+
+    imagen_url = data?.publicUrl || null;
+  }
+
+  const { error } = await supabaseClient
+    .from("novedades")
+    .insert([{
+      titulo,
+      descripcion,
+      imagen_url
+    }]);
+
+  if (error) {
+    alert("Error: " + error.message);
+    return;
+  }
+
+  alert("Novedad publicada correctamente");
+
+  document.getElementById("novTitulo").value = "";
+  document.getElementById("novDesc").value = "";
+  document.getElementById("novImagen").value = "";
+
+  location.reload();
+}
 </script>
 
 </body>
 </html>
+
 
 
 
