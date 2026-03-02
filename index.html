@@ -420,7 +420,7 @@ if (typeof window.getDB !== "function") {
     div.innerHTML=`
       <h3>Torneo Federado #${t.id}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
-      <p><strong>Observación:</strong> ${t.observacion}</p>
+      <p><strong>Observación:</strong> ${t.observacion || ""}</p>
       <p><strong>Inscriptos por club:</strong></p>
       <ul>${inscriptosHtml || "<li>-</li>"}</ul>
     `;
@@ -437,7 +437,7 @@ if (typeof window.getDB !== "function") {
       <h3>${t.nombre}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
       <p><strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}</p>
-      <p>${t.descripcion}</p>
+      <p>${t.descripcion || ""}</p>
     `;
     internos.appendChild(div);
   });
@@ -567,6 +567,7 @@ if (typeof window.getDB !== "function") {
 });
 
 </script>
+
 
 
 
