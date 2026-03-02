@@ -138,7 +138,7 @@ Observación: <input id="fedObs"><br><br>
 
 <div id="torneoClubes"></div>
 
-<button class="save" onclick="crearTorneoFederado()">Crear torneo federado</button>
+<button class="save" onclick="guardarNuevoTorneoFederado()">Crear torneo federado</button>
 </div>
 
 <!-- ===== TORNEOS (torneos_nuevos) ===== -->
@@ -171,10 +171,9 @@ Nombre: <input id="intNombre"><br><br>
 Fecha: <input id="intFecha"><br><br>
 Descripción: <input id="intDesc"><br><br>
 
-<button class="save" onclick="crearTorneoInterno()">Crear torneo interno</button>
+<button class="save" onclick="guardarNuevoTorneoInterno()">Crear torneo interno</button>
 </div>
 
-<button class="save" onclick="guardarTorneosNuevos()">Guardar torneos</button>
 <button class="save" onclick="saveDB(db)">Guardar cambios</button>
 
 </section>
@@ -561,9 +560,11 @@ async function eliminarTorneoInterno(index){
   cargarInternos();
 }
 
-async function crearTorneoFederado() {
-  const fechaRaw = fedFecha.value;
-  const observacion = fedObs.value?.trim() || null;
+/* ================= TORNEOS FEDERADOS (CORREGIDO) ================= */
+// Renombramos la función a guardarNuevoTorneoFederado
+async function guardarNuevoTorneoFederado() {
+  const fechaRaw = document.getElementById('fedFecha').value;
+  const observacion = document.getElementById('fedObs').value?.trim() || null;
 
   if (!fechaRaw) {
     alert("Completá la fecha del torneo federado.");
@@ -587,17 +588,19 @@ async function crearTorneoFederado() {
     return;
   }
 
-  fedFecha.value = "";
-  fedObs.value = "";
+  document.getElementById('fedFecha').value = "";
+  document.getElementById('fedObs').value = "";
 
   db = await getDB();
   cargarFederados();
 }
 
-async function crearTorneoInterno() {
-  const nombre = intNombre.value?.trim();
-  const fechaRaw = intFecha.value;
-  const descripcion = intDesc.value?.trim() || null;
+/* ================= TORNEOS INTERNOS (CORREGIDO) ================= */
+// Renombramos la función a guardarNuevoTorneoInterno
+async function guardarNuevoTorneoInterno() {
+  const nombre = document.getElementById('intNombre').value?.trim();
+  const fechaRaw = document.getElementById('intFecha').value;
+  const descripcion = document.getElementById('intDesc').value?.trim() || null;
 
   if (!nombre || !fechaRaw) {
     alert("Completá nombre y fecha del torneo interno.");
@@ -606,7 +609,6 @@ async function crearTorneoInterno() {
 
   const fecha = new Date(fechaRaw).toISOString().split("T")[0];
 
-  // 🔥 FORZAMOS organizador_id a null para descartar problema de FK
   const { error } = await supabaseClient
     .from("torneos_internos")
     .insert([
@@ -624,35 +626,13 @@ async function crearTorneoInterno() {
     return;
   }
 
-  intNombre.value = "";
-  intFecha.value = "";
-  intDesc.value = "";
-  intOrg.value = "";
+  document.getElementById('intNombre').value = "";
+  document.getElementById('intFecha').value = "";
+  document.getElementById('intDesc').value = "";
+  document.getElementById('intOrg').value = "";
 
   db = await getDB();
   cargarInternos();
-}
-
-function cargarClubesTorneo(){
-  const cont = document.getElementById("torneoClubes");
-  if(!cont || !db) return;
-
-  cont.innerHTML = db.clubes.map(club => {
-    const jugadores = db.jugadores.filter(j => j.club_id === club.id);
-
-    return `
-      <div class="club" style="padding:10px;margin-top:10px;">
-        <strong>${club.nombre}</strong><br>
-        ${jugadores.length
-          ? jugadores.map(j => `
-              <label style="display:block;margin-top:4px;">
-                <input type="checkbox" class="jugador" value="${j.nombre}"> ${j.nombre}
-              </label>
-            `).join("")
-          : "<em>Sin jugadores cargados</em>"}
-      </div>
-    `;
-  }).join("");
 }
 
 /* ================= CLUBES ================= */
@@ -966,6 +946,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
