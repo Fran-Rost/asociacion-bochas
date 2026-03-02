@@ -133,6 +133,7 @@ hr{margin:25px 0;}
 <hr>
 
 <h3>Crear torneo federado</h3>
+Nombre: <input id="fedNombre" placeholder="Ej: Provincial Masculino"><br><br>
 Fecha: <input id="fedFecha"><br><br>
 Observación: <input id="fedObs"><br><br>
 
@@ -297,15 +298,16 @@ function cargarFederados(){
     div.className = "club";
 
     div.innerHTML = `
-      <strong>Torneo #${t.id}</strong><br><br>
+  <strong>${t.nombre || "Torneo sin nombre"}</strong><br><br>
 
-      Fecha:
-      <input value="${t.fecha}"
-        onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
+  Fecha:
+  <input value="${t.fecha}" 
+    onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
 
-      Observación:
-      <input value="${(t.descripcion || t.observacion) ?? ''}"
-        onchange="db.torneosFederados[${ti}].descripcion=this.value; delete db.torneosFederados[${ti}].observacion"><br><br>
+  Observación:
+  <input value="${(t.descripcion || t.observacion) ?? ''}" 
+    onchange="db.torneosFederados[${ti}].descripcion=this.value">
+  <br><br>
 
       <button class="save" onclick="toggle('ins-${ti}')">
         Editar inscriptos
@@ -585,11 +587,12 @@ async function eliminarTorneoInterno(index){
 /* ================= TORNEOS FEDERADOS (CORREGIDO) ================= */
 // Renombramos la función a guardarNuevoTorneoFederado
 async function guardarNuevoTorneoFederado() {
+  const nombre = document.getElementById('fedNombre').value.trim(); // Leemos el nombre
   const fechaRaw = document.getElementById('fedFecha').value;
-  const observacion = document.getElementById('fedObs').value?.trim() || null;
+  const observacion = document.getElementById('fedObs').value?.trim() || "";
 
-  if (!fechaRaw) {
-    alert("Completá la fecha del torneo federado.");
+  if (!nombre || !fechaRaw) {
+    alert("Completá nombre y fecha del torneo federado.");
     return;
   }
 
@@ -599,17 +602,19 @@ async function guardarNuevoTorneoFederado() {
     .from("torneos_federados")
     .insert([
       {
+        nombre, // Lo enviamos a Supabase
         fecha,
         observacion
       }
     ]);
 
   if (error) {
-    console.error(error);
-    alert("Error al crear torneo federado: " + error.message);
+    alert("Error al crear: " + error.message);
     return;
   }
 
+  // Limpiamos los campos
+  document.getElementById('fedNombre').value = "";
   document.getElementById('fedFecha').value = "";
   document.getElementById('fedObs').value = "";
 
@@ -968,6 +973,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
