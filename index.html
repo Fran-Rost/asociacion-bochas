@@ -397,12 +397,12 @@ if (typeof window.getDB !== "function") {
     return;
   }
 
-  /* ================= Torneos (torneos_nuevos) ================= */
+ /* ================= Torneos Federados ================= */
   const fed = document.getElementById("torneosFederados");
   fed.innerHTML = "";
-  db.torneosFederados?.forEach((t,i)=>{
-    const div=document.createElement("div");
-    div.className="club-card";
+  db.torneosFederados?.forEach((t, i) => {
+    const div = document.createElement("div");
+    div.className = "club-card";
 
     const inscriptosData = typeof t.inscriptos === "string"
       ? (() => { try { return JSON.parse(t.inscriptos); } catch { return {}; } })()
@@ -417,27 +417,28 @@ if (typeof window.getDB !== "function") {
       `)
       .join("");
 
-    div.innerHTML=`
-      <h3>Torneo Federado #${t.id}</h3>
+    // CAMBIO: Usamos t.nombre en lugar de t.id y t.observacion ?? "" para evitar el "null"
+    div.innerHTML = `
+      <h3>${t.nombre || `Torneo Federado #${t.id}`}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
-      <p><strong>Observación:</strong> ${t.observacion || ""}</p>
+      <p><strong>Observación:</strong> ${t.observacion ?? ""}</p>
       <p><strong>Inscriptos por club:</strong></p>
       <ul>${inscriptosHtml || "<li>-</li>"}</ul>
     `;
     fed.appendChild(div);
   });
-
+  
   /* ================= Torneos Internos ================= */
   const internos = document.getElementById("torneosInternos");
   internos.innerHTML = "";
-  db.torneosInternos?.forEach(t=>{
-    const div=document.createElement("div");
-    div.className="club-card";
-    div.innerHTML=`
+  db.torneosInternos?.forEach(t => {
+    const div = document.createElement("div");
+    div.className = "club-card";
+    div.innerHTML = `
       <h3>${t.nombre}</h3>
       <p><strong>Fecha:</strong> ${t.fecha}</p>
       <p><strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}</p>
-      <p>${t.descripcion || ""}</p>
+      <p>${t.descripcion ?? ""}</p> 
     `;
     internos.appendChild(div);
   });
@@ -460,7 +461,7 @@ if (typeof window.getDB !== "function") {
       div.innerHTML = `
         <h3>${torneo.nombre || torneo.titulo || `Torneo #${torneo.id}`}</h3>
         <p><strong>Fecha:</strong> ${torneo.fecha || "-"}</p>
-        <p><strong>Observación:</strong> ${torneo.observacion || torneo.descripcion || "-"}</p>
+        <p><strong>Observación:</strong> ${(torneo.observacion || torneo.descripcion) ?? ""}</p>
       `;
       torneosListadoEl.appendChild(div);
     });
@@ -567,6 +568,7 @@ if (typeof window.getDB !== "function") {
 });
 
 </script>
+
 
 
 
