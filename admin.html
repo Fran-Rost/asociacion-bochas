@@ -304,7 +304,7 @@ function cargarFederados(){
         onchange="db.torneosFederados[${ti}].fecha=this.value"><br><br>
 
       Observación:
-      <input value="${t.descripcion || t.observacion || ""}"
+      <input value="${(t.descripcion || t.observacion) ?? ''}"
         onchange="db.torneosFederados[${ti}].descripcion=this.value; delete db.torneosFederados[${ti}].observacion"><br><br>
 
       <button class="save" onclick="toggle('ins-${ti}')">
@@ -445,7 +445,7 @@ function cargarTorneosNuevos(){
         onchange="db.torneosNuevos[${ti}].fecha=this.value"><br><br>
 
       Descripción:
-      <input value="${t.descripcion || t.observacion || ""}"
+      <input value="${(t.descripcion || t.observacion) ?? ''}"
         onchange="db.torneosNuevos[${ti}].descripcion=this.value"><br><br>
 
       <button class="save"
@@ -545,7 +545,7 @@ function cargarInternos(){
       <strong>${t.nombre}</strong><br>
       <strong>Fecha:</strong> ${t.fecha}<br>
       <strong>Organiza:</strong> ${t.clubes?.nombre || "Asociación"}<br>
-      <em>${t.descripcion}</em><br><br>
+      <em>${t.descripcion ?? ''}</em><br><br>
 
       <button class="save"
         style="background:#a00"
@@ -622,7 +622,7 @@ async function guardarNuevoTorneoFederado() {
 async function guardarNuevoTorneoInterno() {
   const nombre = document.getElementById('intNombre').value?.trim();
   const fechaRaw = document.getElementById('intFecha').value;
-  const descripcion = document.getElementById('intDesc').value?.trim() || null;
+  const descripcion = document.getElementById('intDesc').value?.trim() || "";
 
   if (!nombre || !fechaRaw) {
     alert("Completá nombre y fecha del torneo interno.");
@@ -968,6 +968,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
