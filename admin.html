@@ -368,12 +368,34 @@ function toggleJugador(ti, club, jugador, checked){
   }
 }
 
-async function eliminarTorneoFederado(index){
-  if(!confirm("¿Eliminar este torneo federado?")) return;
-  db.torneosFederados.splice(index,1);
-  await saveDB(db);
+async function eliminarTorneoFederado(index) {
+  if (!confirm("¿Eliminar este torneo federado?")) return;
+
+  // 1. Obtenemos el objeto del torneo usando el índice
+  const torneo = db.torneosFederados[index];
+  const torneoId = torneo?.id;
+
+  if (!torneoId) {
+    alert("No se encontró el ID del torneo. Intenta recargar la página.");
+    return;
+  }
+
+  // 2. Ejecutamos la eliminación real en Supabase
+  const { error } = await supabaseClient
+    .from("torneos_federados")
+    .delete()
+    .eq("id", torneoId);
+
+  if (error) {
+    console.error(error);
+    alert("Error al eliminar de la base de datos: " + error.message);
+    return;
+  }
+
+  // 3. Si todo salió bien, actualizamos la interfaz
   db = await getDB();
   cargarFederados();
+  alert("Torneo eliminado correctamente.");
 }
 
 function toggle(id){
@@ -946,6 +968,7 @@ async function agregarJugador(){
 
 </body>
 </html>
+
 
 
 
