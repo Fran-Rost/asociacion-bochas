@@ -135,10 +135,7 @@ hr{margin:25px 0;}
 <h3>Crear torneo federado</h3>
 Nombre: <input id="fedNombre" placeholder="Ej: Provincial Masculino"><br><br>
 Fecha: <input type="date" id="fedFecha"><br><br> <h3>Crear torneo</h3>
-Nombre: <input id="torneoNuevoNombre"><br><br>
-Fecha: <input type="date" id="torneoNuevoFecha"><br><br> <h3>Crear torneo interno</h3>
-...
-Fecha: <input type="date" id="intFecha"><br><br> ```
+Observación: <input id="fedObs"><br><br>
 
 <div id="torneoClubes"></div>
 
@@ -155,7 +152,7 @@ Fecha: <input type="date" id="intFecha"><br><br> ```
 
 <h3>Crear torneo</h3>
 Nombre: <input id="torneoNuevoNombre"><br><br>
-Fecha: <input id="torneoNuevoFecha"><br><br>
+Fecha: <input type="date" id="torneoNuevoFecha"><br><br> <h3>Crear torneo interno</h3>
 Descripción: <input id="torneoNuevoDesc"><br><br>
 
 <button class="save" onclick="crearTorneoNuevo()">Crear torneo</button>
@@ -172,7 +169,7 @@ Descripción: <input id="torneoNuevoDesc"><br><br>
 <h3>Crear torneo interno</h3>
 Organizador: <select id="intOrg"></select><br><br>
 Nombre: <input id="intNombre"><br><br>
-Fecha: <input id="intFecha"><br><br>
+Fecha: <input type="date" id="intFecha"><br><br>
 Descripción: <input id="intDesc"><br><br>
 
 <button class="save" onclick="guardarNuevoTorneoInterno()">Crear torneo interno</button>
