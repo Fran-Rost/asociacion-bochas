@@ -1006,62 +1006,50 @@ async function agregarJugador(){
 // ================= NOVEDADES =================
 
 async function publicarNovedad() {
-  const titulo = document.getElementById("novTitulo").value.trim();
-  const descripcion = document.getElementById("novDesc").value.trim();
-  const imagenFile = document.getElementById("novImagen").files[0];
-
-  if (!titulo) {
-    alert("El título es obligatorio");
-    return;
-  }
-
+  const titulo = document.getElementById('novTitulo').value.trim();
+  const descripcion = document.getElementById('novDesc').value.trim();
+  const imagenFile = document.getElementById('novImagen').files[0];
   let imagen_url = null;
 
-  if (imagenFile) {
-    const { data, error } = await subirLogoClub(imagenFile, { bucket: "novedades" });
-
-    if (error) {
-      alert("Error al subir imagen: " + error.message);
-      return;
-    }
-
-    imagen_url = data?.publicUrl || null;
-  }
-
-  const { error } = await supabaseClient
-    .from("novedades")
-    .insert([{
-      titulo,
-      descripcion,
-      imagen_url
-    }]);
-
-  if (error) {
-    alert("Error: " + error.message);
+  if (!titulo) {
+    alert("Por favor, ingresa al menos un título para la novedad.");
     return;
   }
 
-  alert("Novedad publicada correctamente");
+  try {
+    if (imagenFile) {
+      // Usamos la nueva función del database.js
+      const { data, error: uploadError } = await window.subirImagen(imagenFile, 'novedades'); 
+      if (uploadError) {
+        throw new Error("Error al subir la imagen: " + uploadError.message);
+      }
+      imagen_url = data.publicUrl;
+    }
 
-  document.getElementById("novTitulo").value = "";
-  document.getElementById("novDesc").value = "";
-  document.getElementById("novImagen").value = "";
+    // Guardamos en la tabla novedades
+    const { error: insertError } = await supabaseClient
+      .from("novedades")
+      .insert([{ titulo, descripcion, imagen_url }]);
 
-  location.reload();
+    if (insertError) throw insertError;
+
+    alert("¡Novedad publicada con éxito!");
+    
+    // Limpiar campos
+    document.getElementById('novTitulo').value = "";
+    document.getElementById('novDesc').value = "";
+    document.getElementById('novImagen').value = "";
+    
+    // Opcional: recargar la lista si tienes una función para mostrar novedades en admin
+    // cargarNovedadesAdmin(); 
+
+  } catch (error) {
+    console.error(error);
+    alert("Hubo un problema: " + error.message);
+  }
 }
+  
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
