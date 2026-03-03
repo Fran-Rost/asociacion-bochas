@@ -251,6 +251,7 @@ Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
 </div>
 </section>
 
+/* ================= NOVEDADES (ADMIN) ================= */
 <section id="novedadesAdmin" class="section">
   <div class="box">
     <h2>Gestión de Novedades</h2>
@@ -307,6 +308,7 @@ if (typeof window.getDB !== "function") {
   cargarClubesAdmin();
   cargarSelectClubes();
   cargarClubesTorneo();
+  cargarNovedadesAdmin();
 });
 
 /* -------- Navegación -------- */
@@ -1113,4 +1115,5 @@ async function eliminarNovedad(id) {
 
 </body>
 </html>
+
 
