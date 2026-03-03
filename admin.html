@@ -251,7 +251,7 @@ Logo URL (opcional): <input id="nuevoClubLogoUrl" placeholder="https://...">
 </div>
 </section>
 
-/* ================= NOVEDADES (ADMIN) ================= */
+<!--================= NOVEDADES (ADMIN) =================-->
 <section id="novedadesAdmin" class="section">
   <div class="box">
     <h2>Gestión de Novedades</h2>
@@ -1012,24 +1012,26 @@ async function agregarJugador(){
 
 function cargarNovedadesAdmin() {
   const cont = document.getElementById("adminNovedades");
+  if (!cont) return;
   cont.innerHTML = "";
 
-  if (!db || !db.novedades) return;
+  if (!db || !db.novedades || db.novedades.length === 0) {
+    cont.innerHTML = "<p>No hay novedades publicadas.</p>";
+    return;
+  }
 
-  // Ordenamos por fecha de creación (más nuevas primero)
-  const novs = [...db.novedades].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  // Ordenar por las más recientes
+  const novs = [...db.novedades].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   novs.forEach((n) => {
-    // Buscamos el índice original en db.novedades para que el onchange guarde en el lugar correcto
     const ni = db.novedades.findIndex(item => item.id === n.id);
-    
     const div = document.createElement("div");
-    div.className = "club"; // Usamos tu clase de estilo existente
+    div.className = "club"; // Reutilizamos tu estilo de recuadro
+    
     div.innerHTML = `
       <div style="margin-bottom:10px;">
         <label><strong>Título:</strong></label><br>
-        <input value="${n.titulo || ""}" 
-               style="width:100%; font-size:1.2em; font-weight:bold;" 
+        <input value="${n.titulo || ""}" style="width:100%; font-weight:bold;" 
                onchange="db.novedades[${ni}].titulo=this.value">
       </div>
 
@@ -1045,11 +1047,12 @@ function cargarNovedadesAdmin() {
                onchange="db.novedades[${ni}].imagen_url=this.value">
       </div>
 
-      ${n.imagen_url ? `<img src="${n.imagen_url}" style="max-height:150px; display:block; margin:10px 0; border:1px solid #ccc;">` : ""}
+      ${n.imagen_url ? `<img src="${n.imagen_url}" style="max-height:100px; display:block; margin:10px 0;">` : ""}
       
       <button class="save" style="background:#a00" onclick="eliminarNovedad(${n.id})">
-        Eliminar Publicación
+        Eliminar
       </button>
+      <hr>
     `;
     cont.appendChild(div);
   });
@@ -1065,25 +1068,16 @@ async function publicarNovedad() {
 
   try {
     if (imageFile) {
-      const { data, error: uploadError } = await window.subirImagen(imageFile, 'novedades');
-      if (!uploadError) imageUrl = data.publicUrl;
+      const { data, error } = await window.subirImagen(imageFile, 'novedades');
+      if (error) throw error;
+      imageUrl = data.publicUrl;
     }
 
-    const { error } = await supabaseClient
-      .from("novedades")
-      .insert({ titulo, descripcion, imagen_url: imageUrl });
-
+    const { error } = await supabaseClient.from("novedades").insert({ titulo, descripcion, imagen_url: imageUrl });
     if (error) throw error;
 
-    alert("Novedad publicada");
-    db = await getDB();
-    cargarNovedadesAdmin();
-    
-    // Limpiar campos
-    document.getElementById("nuevaNovTitulo").value = "";
-    document.getElementById("nuevaNovDesc").value = "";
-    document.getElementById("nuevaNovImagenFile").value = "";
-    document.getElementById("nuevaNovImagenUrl").value = "";
+    alert("Publicado con éxito");
+    location.reload(); // Recargamos para ver los cambios
   } catch (err) {
     alert("Error: " + err.message);
   }
@@ -1091,29 +1085,26 @@ async function publicarNovedad() {
 
 async function guardarCambiosNovedades() {
   try {
-    // Usamos el syncTable de database.js para sincronizar la tabla novedades
-    await syncTable("novedades", db.novedades);
-    alert("Cambios guardados con éxito");
-    db = await getDB();
+    await saveDB(db);
+    alert("Cambios guardados");
     cargarNovedadesAdmin();
   } catch (err) {
-    alert("Error al guardar: " + err.message);
+    alert("Error: " + err.message);
   }
 }
 
 async function eliminarNovedad(id) {
-  if (!confirm("¿Eliminar esta novedad permanentemente?")) return;
+  if (!confirm("¿Eliminar definitivamente?")) return;
   const { error } = await supabaseClient.from("novedades").delete().eq("id", id);
-  if (error) alert("Error: " + error.message);
-  else {
-    db = await getDB();
-    cargarNovedadesAdmin();
-  }
+  if (error) alert(error.message);
+  else location.reload();
+}
 }
   
 </script>
 
 </body>
 </html>
+
 
 
