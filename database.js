@@ -192,11 +192,11 @@ async function saveDB(db) {
 
 /* =================== STORAGE (IMÁGENES) =================== */
 
-/**
- * Función unificada para subir archivos a Supabase Storage
- * @param {File} file El archivo desde el input
- * @param {string} bucket Nombre del bucket (novedades, clubes-logos, etc)
- */
+// Volvemos a poner la función anterior para no romper nada en el Admin
+async function subirLogoClub(file) {
+  return await subirImagen(file, 'clubes-logos');
+}
+
 async function subirImagen(file, bucket = "clubes-logos") {
   if (!file) return { data: null, error: new Error("Archivo inválido") };
 
@@ -269,8 +269,9 @@ async function eliminarTorneoInternoDB(id) {
 window.getDB = getDB;
 window.saveDB = saveDB;
 window.syncTable = syncTable;
-window.subirImagen = subirImagen;
-window.crearClub = crearClub;
+window.subirLogoClub = subirLogoClub; // Restablecida
+window.subirImagen = subirImagen;     // Nueva para Novedadeswindow.crearClub = crearClub;
+window.crearClub = crearClub;          // Esta línea estaba pegada a la anterior
 window.actualizarClub = actualizarClub;
 window.eliminarClubDB = eliminarClubDB;
 window.eliminarNovedadDB = eliminarNovedadDB;
@@ -278,3 +279,4 @@ window.eliminarJugadorDB = eliminarJugadorDB;
 window.eliminarTorneoFederadoDB = eliminarTorneoFederadoDB;
 window.eliminarTorneoInternoDB = eliminarTorneoInternoDB;
 window.supabaseClient = supabaseClient;
+
