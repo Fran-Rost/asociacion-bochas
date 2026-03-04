@@ -195,37 +195,54 @@ th {
 
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
+
   .main-header {
-    padding: 14px 12px;
+    padding: 15px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .logo {
-    left: 12px;
-    top: 12px;
+    position: static;
     transform: none;
-    height: 60px;
+    height: 65px;
+    margin-bottom: 10px;
   }
 
   .header-center {
-    margin-left: 90px;
-    align-items: flex-start;
-    text-align: left;
+    margin-left: 0; /* SACAMOS el empuje */
+    width: 100%;
+    align-items: center;
+    text-align: center;
   }
 
   .header-center h1 {
-    font-size: 20px;
-    line-height: 1.25;
+    font-size: 19px;
+    margin-bottom: 15px;
   }
 
+  /* NAV DESLIZABLE */
   .header-center nav {
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;      /* una sola fila */
+    overflow-x: auto;       /* scroll horizontal */
+    width: 100%;
+    justify-content: center;
+    padding: 5px 10px;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .header-center nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
     font-size: 14px;
-    padding: 7px 14px;
+    padding: 8px 16px;
+  }
+
+  .header-center nav::-webkit-scrollbar {
+    display: none;
   }
 
   .layout {
@@ -622,6 +639,7 @@ if (typeof supabaseClient !== "undefined") {
 });
 
 </script>
+
 
 
 
