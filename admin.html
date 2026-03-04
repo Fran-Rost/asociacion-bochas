@@ -1098,13 +1098,14 @@ async function eliminarNovedad(id) {
   const { error } = await supabaseClient.from("novedades").delete().eq("id", id);
   if (error) alert(error.message);
   else location.reload();
-}
+  }
 }
   
 </script>
 
 </body>
 </html>
+
 
 
 
