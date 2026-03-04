@@ -102,6 +102,37 @@ input[type="number"]{width:60px;}
   cursor:pointer;
 }
 hr{margin:25px 0;}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+  nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+
+  nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .section {
+    padding: 15px;
+  }
+}
+  
 </style>
 </head>
 
@@ -1114,6 +1145,7 @@ async function eliminarNovedad(id) {
 
 </body>
 </html>
+
 
 
 
