@@ -727,6 +727,15 @@ function cargarClubesAdmin(){
   });
 }
 
+// Función de compatibilidad para evitar errores de referencia
+function cargarClubesTorneo() {
+    console.log("Compatibilidad: ejecutando cargarClubesTorneo de respaldo.");
+    // Si tienes un select de clubes en torneos, llamamos a la que sí existe:
+    if (typeof cargarSelectClubes === "function") {
+        cargarSelectClubes();
+    }
+}
+  
 /* ================= JUGADORES ================= */
 const tabla=document.getElementById("tablaJugadores");
 const categoryOrder = { Primera: 3, Segunda: 2, Tercera: 1 };
@@ -1105,6 +1114,7 @@ async function eliminarNovedad(id) {
 
 </body>
 </html>
+
 
 
 
